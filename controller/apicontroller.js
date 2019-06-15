@@ -66,7 +66,6 @@ exports.getUser = function(req, res) {
 exports.updateUser = [
   check("email").isEmail(),
   check("password").isLength({ min: 5 }),
-  check("paid").isBoolean(),
   check("role").isIn([0, 1]),
   (req, res) => {
     // Check for validation errors.
@@ -197,10 +196,15 @@ exports.login = [
                       expiresIn: "1h"
                     }
                   );
+                  // Creating an user object and setting needed return values to it.
+                  var result_user = new Object();
+                  result_user.email = req.session.user.email;
+                  result_user.role = req.session.user.role;
+                  result_user.userId = req.session.user.userId;
                   // Return the user and the jwt token to the client.
                   return res
                     .status(200)
-                    .json({ message: req.session.user, token: token });
+                    .json({ user: result_user, token: token });
                 }
                 return res
                   .status(401)
@@ -395,8 +399,7 @@ exports.getUndoneChallenges = [
           Challenge.find({ challengeId: { $nin: ids } })
             .exec()
             .then(challenges => {
-              console.log("Incompleted challenges: " + challenges);
-              res.status(200).json({ challenges: challenges });
+              res.status(200).json({ data: challenges });
             });
         }
       });

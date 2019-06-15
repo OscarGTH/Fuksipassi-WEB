@@ -1,3 +1,6 @@
+import React from "react";
+import  {Dialog, DialogActions, DialogContent,DialogTitle,TextField,Button} from "@material-ui/core"
+
 // Component that handles registering.
 class RegisterForm extends React.Component {
     constructor(props) {
@@ -89,3 +92,4 @@ class RegisterForm extends React.Component {
       );
     }
   }
+  export default RegisterForm;

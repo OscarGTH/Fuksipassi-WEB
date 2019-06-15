@@ -1,52 +1,90 @@
-import React from 'react';
-import ExpandableCard from './Card.js'
-
-
-
-
+import React from "react";
+import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
+import Grid from "@material-ui/core/Grid"
+import LoginForm from "./Login.js"
+import ChallengeList from "./ChallengeList.js"
 
 class App extends React.Component {
   constructor() {
     super();
-    this.state = {result: [],url:"http://localhost:3000/api/"};
-    
+    this.state = {
+      // Value to tell if the user has logged in or not.
+      auth: false,
+      // Email of the user that is logged in.
+      user: "",
+      // JSON web token
+      token: ""
+    };
+    this.setAuthenticate = this.setAuthenticate.bind(this);
+    this.handleLogout = this.handleLogout.bind(this);
   }
-  
-  componentDidMount(){
-    fetch(this.state.url + "challenge/done/5cfe97bfe4ed3430fc5ff976", {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json"
-      },
-      cache: "no-cache"
-    }).then(res => {
-      res.json().then(body => {
-        console.log(body.data[0])
-        // Set the current user as the user that was returned as response.
-        this.setState({
-          result: body.data,
-          image: body.data[0].img.data
-        });
-        
+  // Method that is called after login. Sets token and other important information to state.
+  // Toggles MainMenu by setting auth => true.
+  setAuthenticate = (auth_user, token) => {
+    // Check that the user is not guest.
+    console.log(auth_user)
+      this.setState({
+        user: auth_user,
+        auth: true,
+        token: token
       });
-    });
-  }
- 
-
+    }
   
+  // Function to logout.
+  handleLogout = () => {
+    // If role is not unregistered user, log out. Otherwise just set auth to false.
+    if (this.state.user.role !== 2) {
+      fetch("http://localhost:3000/logout", {
+        method: "GET",
+        mode: "cors",
+        headers: {
+          "Content-type": "application/json",
+          Authorization: "Bearer " + this.state.token
+        },
+        cache: "no-cache"
+      }).then(
+        this.setState({
+          token: null,
+          auth: false
+        })
+      );
+    } else {
+      this.setState({
+        auth: false
+      });
+    }
+  };
+
   render() {
-    return(
-      <div>
-       {this.state.result.map(challenge => (
-                      <li key={challenge.date} style={{ margin: "30px", listStyleType: "none" }}>
-                        <div>
-                        <ExpandableCard challenge={challenge}></ExpandableCard>
-                        </div>
-                        </li>))}
+    return (
+      <div className="App">
+        <MuiThemeProvider>
+          {this.state.auth ? (
+            
+              <ChallengeList
+                user={this.state.user}
+                token={this.state.token}
+                onLogout={this.handleLogout}
+              />
+           
+          ) : (
+            <Grid
+            container
+            spacing={0}
+            direction="column"
+            alignItems="center"
+            justify="center"
+            style={{ minHeight: "100vh" }}
+          >
+            <Grid item xs={3}>
+              <LoginForm onAuthenticate={this.setAuthenticate} />
+            </Grid>
+          </Grid>
+          )}
+        </MuiThemeProvider>
       </div>
-    )
+    );
   }
 }
-
 
 export default App;

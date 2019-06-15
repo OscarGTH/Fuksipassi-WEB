@@ -33,10 +33,14 @@ const styles = theme => ({
     },
   });
 class ExpandableCard extends React.Component{
-    state = {
-        object: this.props.challenge,
-        expanded: false
-    };
+  constructor(props){
+    super(props);
+    this.state = {
+      object: this.props.challenge,
+      expanded: false
+  };
+  }
+    
     // Handles the expansion of the card 
     handleExpansion = () => {
         this.setState({
@@ -56,32 +60,32 @@ class ExpandableCard extends React.Component{
     render(){
       const { classes } = this.props;
         return(
-            <Card className={classes.card}>
-                <CardHeader> Card </CardHeader>
-                <CardContent>
-                   <Typography><b>Name:</b> {this.state.object.title}</Typography> 
-                   <Typography><b>Description:</b> {this.state.object.description} </Typography>  
-                   <Typography><b>Completion date:</b> {this.state.object.date} </Typography> 
-                </CardContent>
-                <CardActions className={classes.actions}>
-                    <IconButton
-                    className={classnames(classes.expand, {
-                      [classes.expandOpen]: this.state.expanded,
-                    })}
-                    onClick={this.handleExpansion}
-                    aria-expanded={this.state.expanded}
-                    ><ExpandMoreIcon /></IconButton>
-                </CardActions>
-                <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
+          <Card className={classes.card}>
+          <CardHeader> Card </CardHeader>
           <CardContent>
-            <Typography paragraph>   
-              This window will close in 3 seconds and you will not say a word about this...
-            </Typography>
-            <img src={`data:image/jpeg;base64,${this.state.object.img.data}`} height={200} alt="Proof image"/>
+             <Typography><b>Name:</b> {this.state.object.title}</Typography> 
+             <Typography><b>Description:</b> {this.state.object.description} </Typography>  
+             <Typography><b>Completion date:</b> {this.state.object.date} </Typography> 
           </CardContent>
-        </Collapse>
+          <CardActions className={classes.actions}>
+              <IconButton
+              className={classnames(classes.expand, {
+                [classes.expandOpen]: this.state.expanded,
+              })}
+              onClick={this.handleExpansion}
+              aria-expanded={this.state.expanded}
+              ><ExpandMoreIcon /></IconButton>
+          </CardActions>
+          <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
+    <CardContent>
+      <Typography paragraph>   
+        This window will close in 3 seconds and you will not say a word about this...
+      </Typography>
+      <img src={`data:image/jpeg;base64,${this.state.object.img.data}`} height={200} alt="Proof image"/>
+    </CardContent>
+  </Collapse>
 
-            </Card>
+      </Card> 
         );
     }
 }
@@ -89,4 +93,5 @@ ExpandableCard.propTypes = {
     classes: PropTypes.object.isRequired,
   };
 export default withStyles(styles)(ExpandableCard);
+
 
