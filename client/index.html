@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@16/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"
+    ></script>
+    <script
+      src="https://unpkg.com/@material-ui/core/umd/material-ui.development.js"
+      crossorigin="anonymous"
+    ></script>
+    <title>Movie club</title>
+  </head>
+  <style>
+    body {
+      font-family: Arial;
+      font-size: 17px;
+      background-image: url("https://static.vecteezy.com/system/resources/previews/000/250/856/large_2x/mountain-view-vector-design.jpg");
+      background-size: cover;
+      overflow: "hidden";
+    }
+    .buttonDiv {
+      margin: 5px;
+    }
+
+    #signup {
+      margin: 5px;
+      color: cornflowerblue;
+    }
+    #signup:hover {
+      color: darkblue;
+    }
+  </style>
+  <body>
+    <div id="app"></div>
+    <div id="userInfo"></div>
+    <script type="text/babel">
+      const url = "http://localhost:3000/api/";
+      // Material UI imports.
+      const {
+        Button,
+        Paper,
+        TextField,
+        MuiThemeProvider,
+        Dialog,
+        DialogTitle,
+        DialogContent,
+        DialogActions,
+        Grid,
+        CheckBox,
+        Radio,
+        RadioGroup,
+        FormControl,
+        FormLabel,
+        FormControlLabel
+      } = window["material-ui"];
+      // Main component where everything happens.
+      class App extends React.Component {
+        constructor() {
+          super();
+          this.state = {
+            // Value to tell if the user has logged in or not.
+            auth: false,
+            // Email of the user that is logged in.
+            user: "",
+            // JSON web token
+            token: ""
+          };
+          this.setAuthenticate = this.setAuthenticate.bind(this);
+          this.handleLogout = this.handleLogout.bind(this);
+        }
+        // Method that is called after login. Sets token and other important information to state.
+        // Toggles MainMenu by setting auth => true.
+        setAuthenticate = (status, auth_user, token) => {
+          // Set token and other important data to state.
+          this.setState({
+            user: auth_user,
+            auth: true,
+            token: token
+          });
+        };
+        // Function to logout.
+        handleLogout = () => {
+    // Call REST api with logout call and then set authorization to false and reset token.
+          fetch(url + "logout", {
+            method: "GET",
+            mode: "cors",
+            headers: {
+              "Content-type": "application/json",
+              Authorization: "Bearer " + this.state.token
+            },
+            cache: "no-cache"
+          }).then(
+            this.setState({
+              token: null,
+              auth: false
+            })
+          );
+        };
+
+        render() {
+          return (
+            <div className="App">
+              <MuiThemeProvider>
+                {this.state.auth ? (
+                  <Paper className="paper">
+                    <MainMenu
+                      user={this.state.user}
+                      token={this.state.token}
+                      onLogout={this.handleLogout}
+                    />
+                  </Paper>
+                ) : (
+                  <Grid
+                    container
+                    spacing={0}
+                    direction="column"
+                    alignItems="center"
+                    justify="center"
+                    style={{ minHeight: "100vh" }}
+                  >
+                    <Grid item xs={3}>
+                      <LoginForm onAuthenticate={this.setAuthenticate} />
+                    </Grid>
+                  </Grid>
+                )}
+              </MuiThemeProvider>
+            </div>
+          );
+        }
+      }
+      // Component that works as main menu after logging in as registered member. Has many options.
+      class MainMenu extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {
+            // Json web token
+            token: this.props.token,
+            // Current user that is using the webpage
+            currentUser: this.props.user,
+            // Truth value to toggle the rendering of UserList component.
+            showUsers: false,
+            // Truth value to toggle the rendering of EventsList component.
+            showEvents: false,
+            // Truth value to toggle the rendering of EditUserDialog component.
+            showDialog: false,
+            message: ""
+          };
+          this.handleDialogUpdate = this.handleDialogUpdate.bind(this);
+        }
+        // Handles the logging out
+        handleLogout = () => {
+          this.props.onLogout();
+        };
+        // Handles the closing and opening of user list component
+        showUsers = () => {
+          this.setState({
+            showUsers: !this.state.showUsers
+          });
+        };
+        // Handles the closing and opening of event component
+        showEvents = () => {
+          this.setState({
+            showEvents: !this.state.showEvents
+          });
+        };
+
+        // Handles dialog user editing. Gets updated user data from dialog component
+        handleDialogUpdate = user => {
+          if (user !== "undefined") {
+            fetch(url + "user/" + user.userId, {
+              method: "PATCH",
+              mode: "cors",
+              headers: {
+                "Content-type": "application/json",
+                Authorization: "Bearer " + this.state.token
+              },
+              cache: "no-cache",
+              body: JSON.stringify(user)
+            }).then(res => {
+              res.json().then(body => {
+                // Set the current user as the user that was returned as response.
+                this.setState({
+                  currentUser: body.user
+                });
+                alert(body.message);
+              });
+            });
+          }
+
+          // If dialog was open, close it.
+          if (this.state.showDialog) {
+            this.handleDialog();
+          }
+        };
+
+        // Handles edit user dialog closing
+        handleDialog = () => {
+          this.setState({
+            showDialog: !this.state.showDialog
+          });
+        };
+        // Makes an AJAX call to server with the id of who needs to be deleted.
+        deleteUser = id => {
+          fetch("http://localhost:3000/api/user/" + id, {
+            method: "DELETE",
+            mode: "cors",
+            headers: {
+              "Content-type": "application/json",
+              Authorization: "Bearer " + this.state.token
+            },
+            cache: "no-cache"
+          }).then(res => {
+            res.json().then(body => {
+              // If deletion is succesfull, log out the current user.
+              if (res.status == 200) {
+                this.props.onLogout();
+              } else {
+                // If deletion failed, show error message.
+                alert(body.message);
+              }
+            });
+          });
+        };
+
+        render() {
+          return (
+            <MuiThemeProvider>
+              <div className="test">
+                <Paper className="paper">
+                  <h3> Welcome to the main page of movie club! </h3>
+                  <p>
+                    Logged in as <b> {this.state.currentUser.email} </b>
+                  </p>
+                  <div>
+                    <p>
+                      This website is made for our movie club related
+                      information and to function as a place where everyone can
+                      come and have fun. We hope you enjoy your visit also!
+                    </p>
+                  </div>
+                  <div className="buttonDiv">
+                    <Button
+                      style={{ backgroundColor: "Lavender" }}
+                      onClick={this.showEvents}
+                    >
+                      Upcoming events
+                    </Button>
+                  </div>
+
+                  <div>
+                    <div className="buttonDiv">
+                      <Button
+                        style={{ backgroundColor: "Lavender" }}
+                        onClick={this.showUsers}
+                      >
+                        List of users
+                      </Button>
+                    </div>
+                    <div className="buttonDiv">
+                      <Button
+                        style={{ backgroundColor: "Lavender" }}
+                        onClick={this.handleDialog}
+                      >
+                        Edit your account info
+                      </Button>
+                    </div>
+
+                    <div className="buttonDiv">
+                      <Button
+                        style={{ backgroundColor: "Lavender" }}
+                        onClick={this.handleLogout}
+                      >
+                        Log out
+                      </Button>
+                    </div>
+
+                    {this.state.showUsers && (
+                      <UserList
+                        token={this.state.token}
+                        user={this.state.currentUser}
+                      />
+                    )}
+                    {/* If showDialog is true, show the user editing dialog */}
+                    {this.state.showDialog && (
+                      <EditUserDialog
+                        onDelete={this.deleteUser}
+                        onEdit={this.handleDialogUpdate}
+                        onCancel={this.handleDialog}
+                        targetUser={this.state.currentUser}
+                        currentUser={this.state.currentUser}
+                      />
+                    )}
+                  </div>
+
+                  {this.state.showEvents && (
+                    <EventList user={this.state.currentUser} />
+                  )}
+                </Paper>
+              </div>
+            </MuiThemeProvider>
+          );
+        }
+      }
+      // Class for displaying user list and some functionality.
+      class UserList extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {
+            admin: this.props.user.role,
+            currentUser: this.props.user,
+            token: this.props.token,
+            users: [],
+            showDialog: false,
+            selectedUser: ""
+          };
+          this.handleDelete = this.handleDelete.bind(this);
+          this.deleteUser = this.deleteUser.bind(this);
+        }
+        componentDidMount() {
+          this.getAllUsers();
+        }
+
+        // Handles dialog user editing. Gets updated user data from dialog component
+        handleDialogUpdate = user => {
+          if (user !== "undefined") {
+            fetch(url + "user/" + user.userId, {
+              method: "PATCH",
+              mode: "cors",
+              headers: {
+                "Content-type": "application/json",
+                Authorization: "Bearer " + this.state.token
+              },
+              cache: "no-cache",
+              body: JSON.stringify(user)
+            }).then(res => {
+              res.json().then(body => {
+                this.getAllUsers();
+                alert(body.message);
+              });
+            });
+          }
+          this.handleDialog();
+        };
+
+        // Handles EditUserDialog toggles
+        handleDialog = () => {
+          this.setState({
+            showDialog: !this.state.showDialog
+          });
+        };
+
+        // Fetch all users.
+        getAllUsers = () => {
+          fetch("http://localhost:3000/api/user", {
+            method: "GET",
+            mode: "cors",
+            headers: {
+              "Content-type": "application/json",
+              Authorization: "Bearer " + this.state.token
+            },
+            cache: "no-cache"
+          }).then(res => {
+            res.json().then(body => {
+              // If status is OK, set the users into the array.
+              if (res.status == 200) {
+                this.setState({
+                  users: body.user
+                });
+              } else {
+                alert(body.message);
+              }
+            });
+          });
+        };
+        // Sets the selected user to state and toggles dialog.
+        editUser = user => () => {
+          this.setState({
+            selectedUser: user,
+            showDialog: !this.state.showDialog
+          });
+        };
+
+        // Deletes selected user based on id.
+        deleteUser = id => {
+          fetch("http://localhost:3000/api/user/" + id, {
+            method: "DELETE",
+            mode: "cors",
+            headers: {
+              "Content-type": "application/json",
+              Authorization: "Bearer " + this.state.token
+            },
+            cache: "no-cache"
+          }).then(res => {
+            res.json().then(body => {
+              // If deletion is succesfull, update userlist.
+              if (res.status == 200) {
+                this.getAllUsers();
+              }
+              alert(body.message);
+            });
+          });
+        };
+
+        // Handles deletion from EditUserDialog component.
+        handleDelete = id => {
+          this.handleDialog();
+          this.deleteUser(id);
+        };
+
+        render() {
+          return (
+            <MuiThemeProvider>
+              <Paper>
+                <div>
+                  {/* List all users */}
+                  {this.state.users.map((user, key) => (
+                    <ul key={user.id}>
+                      <li>
+                        <b> Email:</b> {user.email}
+                        <b> Role:</b> {user.role ? <u> Admin </u> : "Basic"}
+                        {/*If the user is admin, show two buttons for editing and deleting the users.*/}
+                        {this.state.admin ? (
+                          <div>
+                            <div className="buttonDiv">
+                              <Button
+                                style={{ backgroundColor: "Lavender" }}
+                                onClick={this.editUser(user)}
+                                className="button"
+                              >
+                                Edit user
+                              </Button>
+                            </div>
+                            {this.state.currentUser.email != user.email ? (
+                              <div className="buttonDiv">
+                                <Button
+                                  style={{ backgroundColor: "Lavender" }}
+                                  onClick={() => this.deleteUser(user.userId)}
+                                  className="button"
+                                >
+                                  Delete user
+                                </Button>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </li>
+                    </ul>
+                  ))}
+                  {this.state.showDialog ? (
+                    <EditUserDialog
+                      onDelete={this.handleDelete}
+                      onEdit={this.handleDialogUpdate}
+                      onCancel={this.handleDialog}
+                      targetUser={this.state.selectedUser}
+                      currentUser={this.state.currentUser}
+                    />
+                  ) : null}
+                </div>
+              </Paper>
+            </MuiThemeProvider>
+          );
+        }
+      }
+      // Component to display login
+      class LoginForm extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {
+            email: " ",
+            password: "",
+            showRegister: false,
+            message: ""
+          };
+          this.handleRegister = this.handleRegister.bind(this);
+        }
+        // Calls parent component method to when the user has logged in.
+        auth = (status, user, token) => {
+          this.props.onAuthenticate(status, user, token);
+        };
+
+        // Logs the user in.
+        login = event => {
+          // Create an user object
+          var user = {
+            email: this.state.email,
+            password: this.state.password
+          };
+          // Send ajax call to server with username and password.
+          fetch("http://localhost:3000/api/login", {
+            credentials: "same-origin",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            method: "POST",
+            body: JSON.stringify(user)
+          }).then(res => {
+            res.json().then(body => {
+              if (res.status == 200) {
+                this.auth(res.status, body.message, body.token);
+              } else {
+                this.setState({
+                  message: body.message
+                });
+              }
+            });
+          });
+        };
+        // Handle text field changes
+        handleChange = name => event => {
+          this.setState({
+            [name]: event.target.value
+          });
+        };
+        // Called when registration is done. Update state of message and close registration tab.
+        handleRegister = (email, message) => {
+          this.setState({
+            message: message,
+            showRegister: false
+          });
+        };
+        // Handles the opening and closing of registration tab.
+        toggleRegister = event => {
+          this.setState({
+            showRegister: !this.state.showRegister
+          });
+        };
+
+        render() {
+          return (
+            <MuiThemeProvider>
+              <Paper className="loginform">
+                <h1> Movie club </h1>
+                <h3> Sign in </h3>
+                <div>{this.state.message}</div>
+                <div>
+                  <TextField
+                    label="Email"
+                    type="email"
+                    autoComplete="email"
+                    variant="outlined"
+                    margin="normal"
+                    value={this.state.email}
+                    onChange={this.handleChange("email")}
+                  />
+                </div>
+                <TextField
+                  label="Password"
+                  type="password"
+                  margin="normal"
+                  variant="outlined"
+                  value={this.state.password}
+                  onChange={this.handleChange("password")}
+                />
+
+                <div className="buttonDiv">
+                  <Button
+                    onClick={this.login}
+                    style={{ backgroundColor: "Lavender" }}
+                  >
+                    Login
+                  </Button>
+                </div>
+                <div className="buttonDiv">
+                  <div>
+                    <p>
+                      Create an account?
+                      <a id="signup" onClick={this.toggleRegister}>
+                        Sign up
+                      </a>
+                    </p>
+                    {this.state.showRegister && (
+                      <RegisterForm onClose={this.handleRegister} />
+                    )}
+                  </div>
+                </div>
+              </Paper>
+            </MuiThemeProvider>
+          );
+        }
+      }
+
+      // A dialog component to edit selected user.
+      class EditUserDialog extends React.Component {
+        constructor(props) {
+          super(props);
+          let user = this.props.targetUser;
+          // Set the default value to role radio button.
+          this.state = {
+            // The email that the user chooses
+            email: user.email,
+            // User given password
+            password: "",
+            // User given role
+            role: user.role,
+            // Boolean value to check if user is admin or not.
+            admin: this.props.currentUser.role,
+            // The user that is sent back to parent component after editing.
+            user: user
+          };
+        }
+        // Calls method from parent component to close the dialog.
+        handleCancel = () => {
+          this.props.onCancel();
+        };
+        // Calls method from parent component with edited user as parameter.
+        handleEdit = () => {
+          // Validate user inputs before sending the edit to the server.
+          if (this.validateInputs()) {
+            // Initialize the edited user.
+            let user = this.state.user;
+            user.email = this.state.email;
+            // If password has been edited (when it's not empty), set user password as the edited one.
+            if (this.state.password != "") user.password = this.state.password;
+
+            user.role = this.state.role;
+            // Send the user to parent class.
+            this.props.onEdit(this.state.user);
+          } else {
+            // Alert about the forbidden char's
+            alert("Forbidden characters found from input.");
+            // Reset the text fields.
+            this.setState({
+              email: this.state.user.email,
+              password: ""
+            });
+            // Force update so the dialog updates the fields correctly.
+            this.forceUpdate();
+          }
+        };
+        // Calls parent component's deletion method with the user id.
+        handleDelete = () => {
+          this.props.onDelete(this.state.user.userId);
+        };
+
+        // Handles the value changes and saves the edited data into its corresponding variable in state.
+        handleChange = field => event => {
+          let value = event.target.value;
+          // If the field is role, then value has to be formatted into integer.
+          value =
+            field == "role"
+              ? event.target.value == "admin"
+                ? 1
+                : 0
+              : event.target.value;
+
+          this.setState({
+            [field]: value
+          });
+        };
+
+        // Validates that the email or password don't have blacklisted characters.
+        validateInputs = () => {
+          var filter = ["$", "{", "}", "[", "]"];
+          var emailAndPass = this.state.email + this.state.password;
+          // If emailAndPass would contain any of the characters found in filter, return false.
+          if (filter.some(elem => emailAndPass.includes(elem))) {
+            return false;
+          }
+          return true;
+        };
+
+        // Set user into state
+        render() {
+          return (
+            <Dialog open={true} onClose={this.handleDialog}>
+              <DialogTitle> Edit user information </DialogTitle>
+              <DialogContent>
+                <div>
+                  <TextField
+                    value={this.state.email}
+                    margin="normal"
+                    label="Email"
+                    type="email"
+                    onChange={this.handleChange("email")}
+                  />
+                </div>
+                <div>
+                  <TextField
+                    value={this.state.password}
+                    margin="normal"
+                    label="Password"
+                    type="password"
+                    onChange={this.handleChange("password")}
+                  />
+                </div>
+                {/* Show optional editing fields if the user is admin */}
+                {this.state.admin == 1 ? (
+                  <div>
+                    <div>
+                      <FormControl>
+                        <FormLabel> Role </FormLabel>
+                        <RadioGroup
+                          value={this.state.role ? "admin" : "basic"}
+                          onChange={this.handleChange("role")}
+                        >
+                          <FormControlLabel
+                            value="admin"
+                            control={<Radio />}
+                            label="Admin"
+                          />
+                          <FormControlLabel
+                            value="basic"
+                            control={<Radio />}
+                            label="Basic"
+                          />
+                        </RadioGroup>
+                      </FormControl>
+                    </div>
+                  </div>
+                ) : null}
+              </DialogContent>
+
+              <DialogActions>
+                <Button
+                  onClick={this.handleDelete}
+                  style={{ backgroundColor: "red" }}
+                  variant="outlined"
+                  color="primary"
+                >
+                  Unregister
+                </Button>
+                <Button
+                  onClick={this.handleCancel}
+                  variant="outlined"
+                  color="primary"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={this.handleEdit}
+                  variant="outlined"
+                  color="primary"
+                >
+                  Edit
+                </Button>
+              </DialogActions>
+            </Dialog>
+          );
+        }
+      }
+      // Component that handles registering.
+      class RegisterForm extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {
+            email: "",
+            password: ""
+          };
+        }
+
+        // Handle text field changes
+        handleChange = name => event => {
+          this.setState({
+            [name]: event.target.value
+          });
+        };
+
+        // Close the popup window
+        handleCancel = () => {
+          this.props.onClose();
+        };
+
+        // Registers an user to the system.
+        handleRegister = () => {
+          // Create an user object
+          var user = {
+            email: this.state.email,
+            password: this.state.password
+          };
+          // Send ajax call to server with username and password.
+          fetch("http://localhost:3000/api/user", {
+            credentials: "same-origin",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            method: "POST",
+            body: JSON.stringify(user)
+          })
+            .then(res => this.handleErrors(res))
+            .then(res => res.json())
+            .then(body => {
+              this.props.onClose(body.email, body.message);
+            });
+        };
+        // Handles errors when signing up.
+        handleErrors = response => {
+          if (!response.ok) {
+            this.props.onClose();
+          }
+          return response;
+        };
+
+        render() {
+          return (
+            <Dialog open={true}>
+              <DialogTitle> Register to movie club </DialogTitle>
+              <DialogContent>
+                <div>
+                  <TextField
+                    label="Email"
+                    onChange={this.handleChange("email")}
+                  />
+                </div>
+                <div>
+                  <TextField
+                    label="Password"
+                    onChange={this.handleChange("password")}
+                  />
+                </div>
+              </DialogContent>
+
+              <DialogActions>
+                <Button
+                  onClick={this.handleRegister}
+                  variant="outlined"
+                  color="primary"
+                >
+                  Register
+                </Button>
+                <Button
+                  onClick={this.handleCancel}
+                  variant="outlined"
+                  color="primary"
+                >
+                  Cancel
+                </Button>
+              </DialogActions>
+            </Dialog>
+          );
+        }
+      }
+      class EventList extends React.Component {
+        constructor(props) {
+          super(props);
+          this.state = {
+            currentUser: this.props.user,
+            events: []
+          };
+        }
+        /* Fetch events from server */
+        componentDidMount() {
+          fetch("http://localhost:3000/api/events")
+            .then(res => res.json())
+            .then(json => this.setState({ events: json }));
+        }
+        render() {
+          return (
+            <MuiThemeProvider>
+              <Paper style={{ width: "700px" }}>
+                <ul>
+                  <div>
+                    {this.state.events.map(event => (
+                      <li key={event.key} style={{ margin: "30px" }}>
+                        <div>
+                          <b>What? </b> {event.name}
+                        </div>
+                        <div>
+                          <b>Where? </b> {event.location}
+                        </div>
+                        <div>
+                          <b>When? </b> {event.date}
+                        </div>
+                        <div>
+                          <b>Cost? </b> {event.price}
+                        </div>
+                      </li>
+                    ))}
+                  </div>
+                </ul>
+              </Paper>
+            </MuiThemeProvider>
+          );
+        }
+      }
+      ReactDOM.render(<App />, document.getElementById("app"));
+    </script>
+  </body>
+</html>
