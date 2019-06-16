@@ -103,12 +103,12 @@ class LoginForm extends React.Component {
           </div>
           <div>
             <div>
-              <p>
+              
                 Create an account?
-                <a id="signup" onClick={this.toggleRegister}>
+                <p id="signup" onClick={this.toggleRegister} style={{color: 'blue'}}>
                   Sign up
-                </a>
-              </p>
+                </p>
+              
               {this.state.showRegister && (
                 <RegisterForm onClose={this.handleRegister} />
               )}

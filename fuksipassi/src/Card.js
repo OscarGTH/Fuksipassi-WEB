@@ -53,7 +53,7 @@ class ExpandableCard extends React.Component{
       if(this.state.expanded !== true){
         setTimeout(function(){
           this.setState({expanded: false})
-        }.bind(this),5000);
+        }.bind(this),3000);
       }
     }
 
@@ -81,7 +81,7 @@ class ExpandableCard extends React.Component{
       <Typography paragraph>   
         This window will close in 3 seconds and you will not say a word about this...
       </Typography>
-      <img src={`data:image/jpeg;base64,${this.state.object.img.data}`} height={200} alt="Proof image"/>
+      <img src={`data:image/jpeg;base64,${this.state.object.image.img.data}`} height={200} alt="Proof of completion"/>
     </CardContent>
   </Collapse>
 

@@ -102,7 +102,7 @@ exports.updateUser = [
                       .status(400)
                       .json({ message: "Error when editing user" });
                   } else {
-                    //Set email into an object
+                    //Set email into an challenge
                     var user = { email: req.body.email };
                     // If the password has been edited, set the new hashed password to replace the old one.
                     if (passwordEdited) {
@@ -159,6 +159,10 @@ exports.login = [
   check("email").isEmail(),
   check("password").isLength({ min: 5 }),
   (req, res) => {
+    console.log("Before login" + req.session.user);
+    if (typeof req.session.user !== "undefined") {
+      console.log(req.session.user.token);
+    }
     // Checking for validation errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
@@ -196,11 +200,14 @@ exports.login = [
                       expiresIn: "1h"
                     }
                   );
-                  // Creating an user object and setting needed return values to it.
+                  req.session.user.token = token;
+                  console.log("Token is : " + req.session.user.token);
+                  // Creating an user challenge and setting needed return values to it.
                   var result_user = new Object();
                   result_user.email = req.session.user.email;
                   result_user.role = req.session.user.role;
                   result_user.userId = req.session.user.userId;
+
                   // Return the user and the jwt token to the client.
                   return res
                     .status(200)
@@ -225,7 +232,6 @@ exports.addUser = [
   check("email").isEmail(),
   check("password").isLength({ min: 5 }),
   (req, res) => {
-    console.log(req.body);
     // Validating the errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
@@ -237,44 +243,31 @@ exports.addUser = [
           if (result[0]) {
             res.status(400).json({ message: "Email already in use" });
           } else {
-            var userId = 1;
-            // Find the highest user id from all users.
-            User.find({})
-              .sort({ userId: -1 })
-              .limit(1)
-              .exec()
-              .then(result => {
-                /*// If array is not undefined or empty, go on.
-                if (typeof result !== "undefined" && result.length > 0) {
-                  // Add one to the result user id and save it to a variable.
-                  userId = result[0].userId + 1;
-                }*/
-                // Create a new user.
-                var user = new User();
+            // Create a new user.
+            var user = new User();
 
-                // Hashing password.
-                bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-                  // Setting the user data.
-                  (user.email = req.body.email),
-                    (user.password = hash),
-                    (user.role = 0);
+            // Hashing password.
+            bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+              // Setting the user data.
+              (user.email = req.body.email),
+                (user.password = hash),
+                (user.role = 0);
 
-                  user.userId = ObjectID();
-                  // Save user into database.
-                  user.save(function(err) {
-                    if (err) {
-                      console.log("error when saving!");
-                      res.status(401).json({ message: "Authorization failed" });
-                    } else {
-                      // Send status with a message and the users email.
-                      res.status(200).json({
-                        email: user.email,
-                        message: "Account created"
-                      });
-                    }
+              user.userId = ObjectID();
+              // Save user into database.
+              user.save(function(err) {
+                if (err) {
+                  console.log("error when saving!");
+                  res.status(401).json({ message: "Authorization failed" });
+                } else {
+                  // Send status with a message and the users email.
+                  res.status(200).json({
+                    email: user.email,
+                    message: "Account created"
                   });
-                });
+                }
               });
+            });
           }
         });
     } else {
@@ -409,10 +402,8 @@ exports.getUndoneChallenges = [
 exports.getDoneChallenges = [
   check("userId").isLength({ min: 24 }),
   function(req, res) {
-    // Find all completed challenges by users id.
-
-    var myPromise = () =>
-      new Promise((resolve, reject) => {
+    console.log(req.params.id)
+        // Find all challenges the user has completed.
         Entry.find({ userId: req.params.id }, { _id: 0 })
           .sort({ challengeId: -1 })
           .exec()
@@ -430,56 +421,17 @@ exports.getDoneChallenges = [
                 // Cast identifiers to ObjectID
                 ids.push(ObjectID(result[i].challengeId));
               }
-
-              // Find the completed challenge entries from the entry collection.
-              Entry.find(
-                { userId: req.params.id, challengeId: { $in: ids } },
-                { _id: 0 }
-              )
-              // Sort array into ascending order by challenge id (by creation date)
-                .sort({ challengeId: -1 })
-                .exec()
-                .then(images => {
-                  var challenge_arr = new Array();
-                  for (let i = 0; i < images.length; i++) {
-                    // Match the corresponding challenge id's from entries to challenges and add image.
-                    Challenge.aggregate([
-                      { $match: { challengeId: ids[i] } },
-                      { $addFields: { image: images[i] } }
-                    ])
-                      .exec()
-                      .then(challenge => {
-                        var object = new Object();
-                        object.title = challenge[0].title;
-                        object.challengeId = challenge[0].challengeId;
-                        object.description = challenge[0].description;
-                        object.date = challenge[0].image.date;
-                        object.img = challenge[0].image.img;
-                        
-                        // Save the challenges into the challenge array.
-                        challenge_arr[i] = object;
-                        // If the loop is in the last round, return the filled array.
-                        if (i == images.length - 1) {
-                          return challenge_arr;
-                        }
-                      })
-                      .then(challenge_arr => {
-                        
-                        // Check that the array isn't undefined.
-                        if (typeof challenge_arr !== "undefined") {
-                          // Resolve the promise.
-                          resolve(challenge_arr);
-                        }
-                      });
-                  }
-                });
+              const promises = result.map((image, i) =>
+                Challenge.aggregate([
+                  { $match: { challengeId: ids[i] } },
+                  { $addFields: { image } }
+                ]).exec()
+              );
+              Promise.all(promises).then(promise_results =>
+                
+                res.status(200).json({ data: promise_results })
+              );
             }
           });
-      });
-      // Call promise function and send a response after resolving it.
-    myPromise().then(data => {
-      
-      res.status(200).json({data: data });
-    });
   }
 ];
