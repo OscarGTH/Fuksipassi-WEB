@@ -345,8 +345,7 @@ exports.completeChallenge = [
   check("challengeId").isLength({ min: 24 }),
   check("userId").isLength({ min: 24 }),
   (req, res) => {
-    console.log(req.session.user);
-    console.log(req.session.user.userId === req.body.userId);
+    console.log(req.file.path + req.session.user.userId)
     if (
       req.session.user !== "undefined" &&
       req.session.user.userId === req.body.userId
@@ -375,7 +374,7 @@ exports.getUndoneChallenges = [
   check("userId").isLength({ min: 24 }),
   function(req, res) {
     // Find all completed challenges by users id.
-    Entry.find({ userId: req.body.userId }, { challengeId: 1, _id: 0 })
+    Entry.find({ userId: req.params.id }, { challengeId: 1, _id: 0 })
       .exec()
       .then(result => {
         if (!result) {
@@ -388,6 +387,7 @@ exports.getUndoneChallenges = [
             // Cast identifiers to ObjectID
             ids.push(ObjectID(result[i].challengeId));
           }
+
           // Filter out the completed challenges and return the remaining.
           Challenge.find({ challengeId: { $nin: ids } })
             .exec()
@@ -402,36 +402,32 @@ exports.getUndoneChallenges = [
 exports.getDoneChallenges = [
   check("userId").isLength({ min: 24 }),
   function(req, res) {
-    console.log(req.params.id)
-        // Find all challenges the user has completed.
-        Entry.find({ userId: req.params.id }, { _id: 0 })
-          .sort({ challengeId: -1 })
-          .exec()
-          .then(result => {
-            // Check if the user hasn't completed any challenges.
-            if (!result) {
-              console.log("Zero completed challenges.");
-              res
-                .status(401)
-                .json({ message: "No completed challenges found." });
-            } else {
-              // Save the completed challenge's identifiers in an array.
-              var ids = new Array();
-              for (var i = 0; i < result.length; i++) {
-                // Cast identifiers to ObjectID
-                ids.push(ObjectID(result[i].challengeId));
-              }
-              const promises = result.map((image, i) =>
-                Challenge.aggregate([
-                  { $match: { challengeId: ids[i] } },
-                  { $addFields: { image } }
-                ]).exec()
-              );
-              Promise.all(promises).then(promise_results =>
-                
-                res.status(200).json({ data: promise_results })
-              );
-            }
-          });
+    // Find all challenges the user has completed.
+    Entry.find({ userId: req.params.id }, { _id: 0 })
+      .sort({ challengeId: -1 })
+      .exec()
+      .then(result => {
+        // Check if the user hasn't completed any challenges.
+        if (!result) {
+          console.log("Zero completed challenges.");
+          res.status(401).json({ message: "No completed challenges found." });
+        } else {
+          // Save the completed challenge's identifiers in an array.
+          var ids = new Array();
+          for (var i = 0; i < result.length; i++) {
+            // Cast identifiers to ObjectID
+            ids.push(ObjectID(result[i].challengeId));
+          }
+          const promises = result.map((image, i) =>
+            Challenge.aggregate([
+              { $match: { challengeId: ids[i] } },
+              { $addFields: { image } }
+            ]).exec()
+          );
+          Promise.all(promises).then(promise_results =>
+            res.status(200).json({ data: promise_results })
+          );
+        }
+      });
   }
 ];

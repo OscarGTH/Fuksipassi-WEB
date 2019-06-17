@@ -18,25 +18,24 @@ class App extends React.Component {
     this.setAuthenticate = this.setAuthenticate.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
   }
-  componentDidMount(){
+  componentDidMount() {
     // Check if the user has already logged in.
-    if(localStorage.getItem('session') !== null){
-      var session_obj = JSON.parse(localStorage.getItem('session'));
-       var login_time = new Date(session_obj.timestamp);
-      var then = new Date();
-      then = new Date(login_time.setSeconds(login_time.getSeconds()+30));
+    if (localStorage.getItem("session") !== null) {
+      var session_obj = JSON.parse(localStorage.getItem("session"));
+      var login_time = new Date(session_obj.timestamp);
+      var then = new Date(login_time.setMinutes(login_time.getMinutes() + 15));
       var now = new Date();
-      
-      if(now.getTime() < then.getTime()){
+
+      if (now.getTime() < then.getTime()) {
         this.setState({
           auth: true,
-          token: localStorage.getItem('token'),
-          user: JSON.parse(localStorage.getItem('user'))
-        })
+          token: localStorage.getItem("token"),
+          user: JSON.parse(localStorage.getItem("user"))
+        });
       }
     }
   }
- 
+
   // Method that is called after login. Sets token and other important information to state.
   // Toggles MainMenu by setting auth => true.
   setAuthenticate = (auth_user, token) => {
@@ -48,29 +47,29 @@ class App extends React.Component {
     });
     // Set token and user into local storage.
     // Set timestamp to know when the data was saved into local storage.
-    localStorage.setItem('user',JSON.stringify(auth_user));
-    localStorage.setItem('token',token);
-    var session_obj = {timestamp: new Date().getTime()}
-    localStorage.setItem('session',JSON.stringify(session_obj))
+    localStorage.setItem("user", JSON.stringify(auth_user));
+    localStorage.setItem("token", token);
+    var session_obj = { timestamp: new Date().getTime() };
+    localStorage.setItem("session", JSON.stringify(session_obj));
   };
 
   // Function to logout.
   handleLogout = () => {
-      fetch("http://localhost:3000/api/logout", {
-        method: "GET",
-        mode: "cors",
-        headers: {
-          "Content-type": "application/json",
-          Authorization: "Bearer " + this.state.token
-        },
-        cache: "no-cache"
-      }).then(
-        this.setState({
-          token: null,
-          auth: false
-        })
-      );
-      localStorage.clear();
+    fetch("http://localhost:3000/api/logout", {
+      method: "GET",
+      mode: "cors",
+      headers: {
+        "Content-type": "application/json",
+        Authorization: "Bearer " + this.state.token
+      },
+      cache: "no-cache"
+    }).then(
+      this.setState({
+        token: null,
+        auth: false
+      })
+    );
+    localStorage.clear();
   };
 
   render() {

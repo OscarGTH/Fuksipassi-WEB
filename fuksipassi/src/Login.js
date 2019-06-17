@@ -69,53 +69,50 @@ class LoginForm extends React.Component {
   render() {
     return (
       <div>
-        
-          <h1> Fuksipassi </h1>
-          <h3> Sign in </h3>
-          <div>{this.state.message}</div>
-          <div>
-            <TextField
-              label="Email"
-              type="email"
-              autoComplete="email"
-              variant="outlined"
-              margin="normal"
-              value={this.state.email}
-              onChange={this.handleChange("email")}
-            />
-          </div>
+        <h1> Fuksipassi </h1>
+        <h3> Sign in </h3>
+        <div>{this.state.message}</div>
+        <div>
           <TextField
-            label="Password"
-            type="password"
-            margin="normal"
+            label="Email"
+            type="email"
+            autoComplete="email"
             variant="outlined"
-            value={this.state.password}
-            onChange={this.handleChange("password")}
+            margin="normal"
+            value={this.state.email}
+            onChange={this.handleChange("email")}
           />
+        </div>
+        <TextField
+          label="Password"
+          type="password"
+          margin="normal"
+          variant="outlined"
+          value={this.state.password}
+          onChange={this.handleChange("password")}
+        />
 
-          <div >
-            <Button
-              onClick={this.login}
-              style={{ backgroundColor: "Lavender" }}
-            >
-              Login
-            </Button>
-          </div>
+        <div>
+          <Button onClick={this.login} style={{ backgroundColor: "Lavender" }}>
+            Login
+          </Button>
+        </div>
+        <div>
           <div>
-            <div>
-              
-                Create an account?
-                <p id="signup" onClick={this.toggleRegister} style={{color: 'blue'}}>
-                  Sign up
-                </p>
-              
-              {this.state.showRegister && (
-                <RegisterForm onClose={this.handleRegister} />
-              )}
-            </div>
+            Create an account?
+            <p
+              id="signup"
+              onClick={this.toggleRegister}
+              style={{ color: "blue" }}
+            >
+              Sign up
+            </p>
+            {this.state.showRegister && (
+              <RegisterForm onClose={this.handleRegister} />
+            )}
           </div>
-          </div>
-      
+        </div>
+      </div>
     );
   }
 }

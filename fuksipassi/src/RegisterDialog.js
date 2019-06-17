@@ -56,7 +56,7 @@ class RegisterForm extends React.Component {
     render() {
       return (
         <Dialog open={true}>
-          <DialogTitle> Register to movie club </DialogTitle>
+          <DialogTitle> Register to Fuksipassi </DialogTitle>
           <DialogContent>
             <div>
               <TextField
