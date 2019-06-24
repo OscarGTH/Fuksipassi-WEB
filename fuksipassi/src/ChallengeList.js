@@ -1,10 +1,13 @@
 import React from "react";
 import ExpandableCard from "./Card.js";
-import Button from "@material-ui/core/Button";
+import LogoutIcon from "@material-ui/icons/Input";
+import UndoIcon from "@material-ui/icons/Undo";
+import RedoIcon from "@material-ui/icons/Redo";
+import AccountCircleIcon from "@material-ui/icons/AccountCircle";
+import IconButton from '@material-ui/core/IconButton';
 import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
-//import LoadingSpinner from "./Loading.js";
 import { Typography } from "@material-ui/core";
 class ChallengeList extends React.Component {
   constructor(props) {
@@ -120,13 +123,16 @@ class ChallengeList extends React.Component {
     const { tabValue } = this.state;
     return (
       <div>
-        <div style={{ display: "flex" }}>
+        <AppBar position="static"><div style={{ display: "flex" }}>
           <Typography style={{ margin: 20 }}>
             Logged in as {this.state.user.email}
           </Typography>
-          <Button onClick={this.handleLogout}>Log out</Button>
-          <Button onClick={this.handleProfile}>My profile</Button>
-        </div>
+          <IconButton onClick={this.handleLogout}><LogoutIcon /></IconButton>
+          <IconButton onClick={this.handleProfile}><AccountCircleIcon /></IconButton>
+          <IconButton><RedoIcon/></IconButton>
+          <IconButton><UndoIcon/></IconButton>
+        </div></AppBar>
+        
 
         <AppBar position="static">
           <Tabs value={tabValue} onChange={this.handleTabChange}>

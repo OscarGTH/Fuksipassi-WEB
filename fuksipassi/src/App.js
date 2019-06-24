@@ -2,6 +2,7 @@ import React from "react";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import Grid from "@material-ui/core/Grid";
 import LoginForm from "./Login.js";
+import AppBar from "@material-ui/core/AppBar";
 import ChallengeList from "./ChallengeList.js";
 
 class App extends React.Component {
@@ -74,7 +75,9 @@ class App extends React.Component {
 
   render() {
     return (
+      
       <div className="App">
+        
         <MuiThemeProvider>
           {this.state.auth ? (
             <ChallengeList
@@ -98,6 +101,8 @@ class App extends React.Component {
           )}
         </MuiThemeProvider>
       </div>
+   
+      
     );
   }
 }

@@ -19,6 +19,8 @@ api.get("/user/:id", Auth.tokenAuth, Auth.checkLogin, controller.getUser);
 api.patch("/user/:id", Auth.tokenAuth, Auth.checkLogin, controller.updateUser);
 // Route for adding user
 api.post("/user", controller.addUser);
+// Route for adding admin user
+api.post("/admin", controller.addAdmin);
 // Route for deleting an user
 api.delete("/user/:id", Auth.tokenAuth, Auth.checkLogin, controller.deleteUser);
 // Route for logging in

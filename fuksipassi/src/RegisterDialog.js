@@ -7,7 +7,8 @@ class RegisterForm extends React.Component {
       super(props);
       this.state = {
         email: "",
-        password: ""
+        password: "",
+        collection: ""
       };
     }
 
@@ -28,7 +29,8 @@ class RegisterForm extends React.Component {
       // Create an user object
       var user = {
         email: this.state.email,
-        password: this.state.password
+        password: this.state.password,
+        collection: this.state.collection
       };
       // Send ajax call to server with username and password.
       fetch("http://localhost:3000/api/user", {
@@ -68,6 +70,12 @@ class RegisterForm extends React.Component {
               <TextField
                 label="Password"
                 onChange={this.handleChange("password")}
+              />
+            </div>
+            <div>
+              <TextField
+                label="Collection name"
+                onChange={this.handleChange("collection")}
               />
             </div>
           </DialogContent>

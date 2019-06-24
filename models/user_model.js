@@ -6,7 +6,8 @@ var UserSchema = new Schema({
   email: String,
   password: String,
   role: Number,
-  userId: ObjectId
+  userId: ObjectId,
+  homeArea: String
 })
 
 

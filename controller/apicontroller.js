@@ -1,6 +1,7 @@
 var User = require("../models/user_model.js");
 var Challenge = require("../models/challenge_model.js");
 var Entry = require("../models/entry_model.js");
+var Area = require("../models/area_model");
 
 var ObjectID = require("mongodb").ObjectID;
 const saltRounds = 5;
@@ -159,7 +160,6 @@ exports.login = [
   check("email").isEmail(),
   check("password").isLength({ min: 5 }),
   (req, res) => {
-    console.log("Before login" + req.session.user);
     if (typeof req.session.user !== "undefined") {
       console.log(req.session.user.token);
     }
@@ -201,7 +201,6 @@ exports.login = [
                     }
                   );
                   req.session.user.token = token;
-                  console.log("Token is : " + req.session.user.token);
                   // Creating an user challenge and setting needed return values to it.
                   var result_user = new Object();
                   result_user.email = req.session.user.email;
@@ -231,44 +230,127 @@ exports.login = [
 exports.addUser = [
   check("email").isEmail(),
   check("password").isLength({ min: 5 }),
+  check("area").isString(),
   (req, res) => {
     // Validating the errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
-      // First off, make sure the email is not duplicate.
-      User.find({ email: req.body.email })
+      Challenge.find({ area: req.body.area })
         .exec()
-        .then(result => {
-          // If there were result when searching with the email, return with a error message.
-          if (result[0]) {
-            res.status(400).json({ message: "Email already in use" });
-          } else {
-            // Create a new user.
-            var user = new User();
+        .then(coll => {
+          if (typeof coll[0] === "undefined") {
+            res.status(400).json({ message: "Invalid area name." });
+          }
+          // First off, make sure the email is not duplicate.
+          User.find({ email: req.body.email })
+            .exec()
+            .then(result => {
+              // If there were result when searching with the email, return with a error message.
+              if (result[0]) {
+                res.status(400).json({ message: "Email already in use" });
+              } else {
+                // Create a new user.
+                var user = new User();
 
-            // Hashing password.
-            bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-              // Setting the user data.
-              (user.email = req.body.email),
-                (user.password = hash),
-                (user.role = 0);
+                // Hashing password.
+                bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+                  // Setting the user data.
+                  (user.email = req.body.email),
+                    (user.password = hash),
+                    (user.homeArea = req.body.area),
+                    (user.role = 0);
 
-              user.userId = ObjectID();
-              // Save user into database.
-              user.save(function(err) {
-                if (err) {
-                  console.log("error when saving!");
-                  res.status(401).json({ message: "Authorization failed" });
-                } else {
-                  // Send status with a message and the users email.
-                  res.status(200).json({
-                    email: user.email,
-                    message: "Account created"
+                  user.userId = ObjectID();
+                  // Save user into database.
+                  user.save(function(err) {
+                    if (err) {
+                      console.log("error when saving!");
+                      res.status(401).json({ message: "Authorization failed" });
+                    } else {
+                      // Send status with a message and the users email.
+                      res.status(200).json({
+                        email: user.email,
+                        message: "Account created"
+                      });
+                    }
+                  });
+                });
+              }
+            });
+        });
+    } else {
+      // Validation failed.
+      res.status(400).json({ message: "Check given information" });
+    }
+  }
+];
+// Registers an user to the system.
+exports.addAdmin = [
+  check("email").isEmail(),
+  check("password").isLength({ min: 5 }),
+  check("area").isLength({ min: 2 }),
+  (req, res) => {
+    console.log(req.body);
+    // Validating the errors.
+    const errors = validationResult(req);
+    if (errors.isEmpty()) {
+      Area.find({ name: req.body.area })
+        .exec()
+        .then(area => {
+          if (area[0]) {
+            res.status(400).json({ message: "Area name already taken." });
+            return true;
+          }
+          // First off, make sure the email is not duplicate.
+          User.find({ email: req.body.email })
+            .exec()
+            .then(result => {
+              // If there were result when searching with the email, return with a error message.
+              if (result[0]) {
+                res.status(400).json({ message: "Email already in use" });
+                return true;
+              } else {
+                // Create a new user.
+                var user = new User();
+
+                // Hashing password.
+                bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+                  // Setting the user data.
+                  (user.email = req.body.email),
+                    (user.password = hash),
+                    (user.homeArea = req.body.area),
+                    (user.role = 1);
+
+                  user.userId = ObjectID();
+                  // Save user into database.
+                  user.save({});
+                });
+
+                // Create a new area
+                var area = new Area();
+                area.name = req.body.area;
+                if (typeof req.body.areaPass !== "undefined") {
+                  bcrypt.hash(req.body.areaPass, saltRounds, function(
+                    err,
+                    hash
+                  ) {
+                    // Setting the area password.
+                    area.password = hash;
                   });
                 }
-              });
+                // Save area into database.
+                area.save(function(err) {
+                  if (err) {
+                    res.status(401).json({ message: "Authorization failed" });
+                    return true;
+                  } else {
+                    res
+                      .status(200)
+                      .json({ message: "Succesfully created area and user." });
+                  }
+                });
+              }
             });
-          }
         });
     } else {
       // Validation failed.
@@ -345,7 +427,7 @@ exports.completeChallenge = [
   check("challengeId").isLength({ min: 24 }),
   check("userId").isLength({ min: 24 }),
   (req, res) => {
-    console.log(req.file.path + req.session.user.userId)
+    console.log(req.file.path + req.session.user.userId);
     if (
       req.session.user !== "undefined" &&
       req.session.user.userId === req.body.userId
