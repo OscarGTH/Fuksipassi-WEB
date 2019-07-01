@@ -1,4 +1,5 @@
 import RegisterForm from "./RegisterDialog.js";
+import CollectionForm from "./CollectionCreation.js"
 import React from "react";
 
 import TextField from "@material-ui/core/TextField";
@@ -10,7 +11,8 @@ class LoginForm extends React.Component {
     this.state = {
       email: " ",
       password: "",
-      showRegister: false,
+      showUserReg: false,
+      showAdminReg: false,
       message: ""
     };
     this.handleRegister = this.handleRegister.bind(this);
@@ -54,16 +56,23 @@ class LoginForm extends React.Component {
     });
   };
   // Called when registration is done. Update state of message and close registration tab.
-  handleRegister = (email, message) => {
+  handleRegister = (message) => {
     this.setState({
       message: message,
-      showRegister: false
+      showUserReg: false,
+      showAdminReg: false
     });
   };
   // Handles the opening and closing of registration tab.
-  toggleRegister = event => {
+  toggleUserRegister = event => {
     this.setState({
-      showRegister: !this.state.showRegister
+      showUserReg: !this.state.showUserReg
+    });
+  };
+  // Handles the opening and closing of registration tab.
+  toggleAdminRegister = event => {
+    this.setState({
+      showAdminReg: !this.state.showAdminReg
     });
   };
   render() {
@@ -102,13 +111,26 @@ class LoginForm extends React.Component {
             Create an account?
             <p
               id="signup"
-              onClick={this.toggleRegister}
+              onClick={this.toggleUserRegister}
               style={{ color: "blue" }}
             >
               Sign up
             </p>
-            {this.state.showRegister && (
+            {this.state.showUserReg && (
               <RegisterForm onClose={this.handleRegister} />
+            )}
+          </div>
+          <div>
+            Create an area?
+            <p
+              id="signup"
+              onClick={this.toggleAdminRegister}
+              style={{ color: "blue" }}
+            >
+              Create
+            </p>
+            {this.state.showAdminReg && (
+              <CollectionForm onClose={this.handleRegister} />
             )}
           </div>
         </div>

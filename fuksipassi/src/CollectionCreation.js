@@ -6,11 +6,25 @@ import {
   DialogTitle,
   TextField,
   Button,
-  Checkbox
+  Checkbox,
+  Typography
 } from "@material-ui/core";
+import PropTypes from "prop-types";
+import { withStyles } from "@material-ui/core/styles";
 
+const styles = theme => ({
+  root: {
+    display: "flex"
+  },
+  typography: {
+    paddingTop: "20px",
+    paddingBottom: "5px",
+    color: "primary",
+    align: "center"
+  }
+});
 // Component that handles registering.
-class RegisterForm extends React.Component {
+class CollectionForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -29,6 +43,13 @@ class RegisterForm extends React.Component {
     });
   };
 
+  // Handles checkbox
+  handleCheckBox = () => {
+    this.setState({
+      passBool: !this.state.passBool
+    });
+  };
+
   // Close the popup window
   handleCancel = () => {
     this.props.onClose();
@@ -42,8 +63,8 @@ class RegisterForm extends React.Component {
       password: this.state.password,
       area: this.state.area
     };
-    if(this.state.area_pass.length > 0){
-        user.areaPass = this.state.area_pass;
+    if (this.state.area_pass.length > 0) {
+      user.areaPass = this.state.area_pass;
     }
     // Send ajax call to server with username and password.
     fetch("http://localhost:3000/api/admin", {
@@ -57,7 +78,7 @@ class RegisterForm extends React.Component {
       .then(res => this.handleErrors(res))
       .then(res => res.json())
       .then(body => {
-        this.props.onClose(body.email, body.message);
+        this.props.onClose(body.message);
       });
   };
   // Handles errors when signing up.
@@ -69,45 +90,50 @@ class RegisterForm extends React.Component {
   };
 
   render() {
+    const { classes } = this.props;
     return (
       <Dialog open={true}>
-        <DialogTitle> Register as admin </DialogTitle>
+        <DialogTitle> Register as an admin for your area </DialogTitle>
         <DialogContent>
           <div>
-            Create a new area for challenges and register as the admin of
-            the area.
+            Create a new area for your challenges and become the admin of the area.
           </div>
-          <div> User </div>
+          <Typography className={classes.typography}> User </Typography>
           <div>
-            <TextField label="Email" onChange={this.handleChange("email")} />
+            <TextField
+              className={classes.fields}
+              label="Email"
+              onChange={this.handleChange("email")}
+            />
           </div>
           <div>
             <TextField
+              className={classes.fields}
               label="Password"
               onChange={this.handleChange("password")}
             />
           </div>
-          <div>Area</div>
-          <div>
-            <TextField
-              label="Name"
-              onChange={this.handleChange("area")}
-            />
-          </div>
+          <Typography className={classes.typography}>Area</Typography>
+
+          <TextField
+            className={classes.fields}
+            label="Name"
+            onChange={this.handleChange("area")}
+          />
           <Checkbox
-            checked={this.state.passBool}
-            onChange={this.handleChange("passBool")}
+            onChange={this.handleCheckBox}
             inputProps={{
               "aria-label": "primary checkbox"
             }}
+            value={this.state.passBool}
           />
-          <div>
-            <TextField
-              disabled={this.state.passBool}
-              label="Password"
-              onChange={this.handleChange("area_pass")}
-            />
-          </div>
+
+          <TextField
+            className={classes.fields}
+            disabled={!this.state.passBool}
+            label="Password"
+            onChange={this.handleChange("area_pass")}
+          />
         </DialogContent>
 
         <DialogActions>
@@ -130,4 +156,7 @@ class RegisterForm extends React.Component {
     );
   }
 }
-export default RegisterForm;
+CollectionForm.propTypes = {
+  classes: PropTypes.object.isRequired
+};
+export default withStyles(styles)(CollectionForm);

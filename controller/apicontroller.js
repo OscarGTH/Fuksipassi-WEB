@@ -269,7 +269,6 @@ exports.addUser = [
                     } else {
                       // Send status with a message and the users email.
                       res.status(200).json({
-                        email: user.email,
                         message: "Account created"
                       });
                     }
@@ -284,16 +283,16 @@ exports.addUser = [
     }
   }
 ];
-// Registers an user to the system.
+// Registers an user and an area to the database.
 exports.addAdmin = [
   check("email").isEmail(),
   check("password").isLength({ min: 5 }),
   check("area").isLength({ min: 2 }),
   (req, res) => {
-    console.log(req.body);
     // Validating the errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
+      // Check if area name is available.
       Area.find({ name: req.body.area })
         .exec()
         .then(area => {
@@ -301,7 +300,7 @@ exports.addAdmin = [
             res.status(400).json({ message: "Area name already taken." });
             return true;
           }
-          // First off, make sure the email is not duplicate.
+          // Then, make sure the email is not duplicate.
           User.find({ email: req.body.email })
             .exec()
             .then(result => {
@@ -322,32 +321,52 @@ exports.addAdmin = [
                     (user.role = 1);
 
                   user.userId = ObjectID();
-                  // Save user into database.
-                  user.save({});
                 });
 
                 // Create a new area
                 var area = new Area();
+                // Set area name
                 area.name = req.body.area;
-                if (typeof req.body.areaPass !== "undefined") {
-                  bcrypt.hash(req.body.areaPass, saltRounds, function(
-                    err,
-                    hash
-                  ) {
-                    // Setting the area password.
-                    area.password = hash;
-                  });
-                }
-                // Save area into database.
-                area.save(function(err) {
-                  if (err) {
-                    res.status(401).json({ message: "Authorization failed" });
-                    return true;
+                // Encrypt possible password in a promise.
+                var promise = new Promise(function(resolve, reject) {
+                  if (typeof req.body.areaPass !== "undefined") {
+                    bcrypt.hash(req.body.areaPass, saltRounds, function(
+                      err,
+                      hash
+                    ) {
+                      if (err) {
+                        res.status(401).json({ message: "Unknown error" });
+                        return true;
+                      } else {
+                        resolve(hash);
+                      }
+                    });
                   } else {
-                    res
-                      .status(200)
-                      .json({ message: "Succesfully created area and user." });
+                    // Resolve null if no password was given.
+                    resolve(null);
                   }
+                });
+                // Wait fora promise to get resolved.
+                promise.then(function(data) {
+                  /* After promise, check if password exists.
+                   *Then save the area and user into database.
+                   */
+                  if (data !== null) {
+                    area.password = data;
+                  }
+                  // Save area into database.
+                  area.save(function(err) {
+                    if (err) {
+                      res.status(401).json({ message: "Authorization failed" });
+                      return true;
+                    } else {
+                      // Save user into database.
+                      user.save({});
+                      res.status(200).json({
+                        message: "Registering successful"
+                      });
+                    }
+                  });
                 });
               }
             });
@@ -403,6 +422,7 @@ exports.createChallenge = [
     challenge.title = req.body.title;
     challenge.description = req.body.description;
     challenge.date = new Date(req.body.date);
+    challenge.area = req.session.user.homeArea;
     // Generate new challenge id for the challenge.
     challenge.challengeId = ObjectID();
     challenge.save(function(err, chall) {
@@ -471,7 +491,7 @@ exports.getUndoneChallenges = [
           }
 
           // Filter out the completed challenges and return the remaining.
-          Challenge.find({ challengeId: { $nin: ids } })
+          Challenge.find({ challengeId: { $nin: ids },area: req.session.user.homeArea })
             .exec()
             .then(challenges => {
               res.status(200).json({ data: challenges });
