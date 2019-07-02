@@ -347,27 +347,33 @@ exports.addAdmin = [
                   }
                 });
                 // Wait fora promise to get resolved.
-                promise.then(function(data) {
-                  /* After promise, check if password exists.
-                   *Then save the area and user into database.
-                   */
-                  if (data !== null) {
-                    area.password = data;
-                  }
-                  // Save area into database.
-                  area.save(function(err) {
-                    if (err) {
-                      res.status(401).json({ message: "Authorization failed" });
-                      return true;
-                    } else {
-                      // Save user into database.
-                      user.save({});
-                      res.status(200).json({
-                        message: "Registering successful"
-                      });
+                promise
+                  .then(function(data) {
+                    /* After promise, check if password exists.
+                     *Then save the area and user into database.
+                     */
+                    if (data !== null) {
+                      area.password = data;
                     }
+                    // Save area into database.
+                    area.save(function(err) {
+                      if (err) {
+                        res
+                          .status(401)
+                          .json({ message: "Authorization failed" });
+                        return true;
+                      } else {
+                        // Save user into database.
+                        user.save({});
+                        res.status(200).json({
+                          message: "Registering successful"
+                        });
+                      }
+                    });
+                  })
+                  .catch(function(error) {
+                    res.status(401).json({ message: "Authorization failed" });
                   });
-                });
               }
             });
         });
@@ -414,14 +420,12 @@ exports.deleteUser = function(req, res) {
 exports.createChallenge = [
   check("title").isString(),
   check("description").isString(),
-  check("date").isLength({ min: 6 }),
   (req, res) => {
     /* Check that the user is admin. ENABLE ME WHEN FINISHED!!!!
      *if(req.session.role == 1){*/
     var challenge = new Challenge();
     challenge.title = req.body.title;
     challenge.description = req.body.description;
-    challenge.date = new Date(req.body.date);
     challenge.area = req.session.user.homeArea;
     // Generate new challenge id for the challenge.
     challenge.challengeId = ObjectID();
@@ -475,29 +479,33 @@ exports.completeChallenge = [
 exports.getUndoneChallenges = [
   check("userId").isLength({ min: 24 }),
   function(req, res) {
-    // Find all completed challenges by users id.
-    Entry.find({ userId: req.params.id }, { challengeId: 1, _id: 0 })
-      .exec()
-      .then(result => {
-        if (!result) {
-          console.log("Zero completed challenges.");
-          res.status(401).json({ message: "No completed challenges found." });
-        } else {
-          // Save the completed challenge's identifiers in an array.
-          var ids = new Array();
-          for (var i = 0; i < result.length; i++) {
-            // Cast identifiers to ObjectID
-            ids.push(ObjectID(result[i].challengeId));
-          }
+      // Find all completed challenges by users id.
+      Entry.find({ userId: req.params.id }, { challengeId: 1, _id: 0 })
+        .exec()
+        .then(result => {
+          if (!result) {
+            console.log("Zero completed challenges.");
+            res.status(401).json({ message: "No completed challenges found." });
+          } else {
+            // Save the completed challenge's identifiers in an array.
+            var ids = new Array();
+            for (var i = 0; i < result.length; i++) {
+              // Cast identifiers to ObjectID
+              ids.push(ObjectID(result[i].challengeId));
+            }
 
-          // Filter out the completed challenges and return the remaining.
-          Challenge.find({ challengeId: { $nin: ids },area: req.session.user.homeArea })
-            .exec()
-            .then(challenges => {
-              res.status(200).json({ data: challenges });
-            });
-        }
-      });
+            // Filter out the completed challenges and return the remaining.
+            Challenge.find({
+              challengeId: { $nin: ids },
+              area: req.session.user.homeArea
+            })
+              .exec()
+              .then(challenges => {
+                res.status(200).json({ data: challenges });
+              });
+          }
+        });
+   
   }
 ];
 // Finds and returns the completed challenges for specific user

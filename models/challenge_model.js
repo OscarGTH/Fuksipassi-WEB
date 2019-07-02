@@ -6,7 +6,6 @@ var ChallengeSchema = new Schema({
     challengeId: mongoose.SchemaTypes.ObjectId,
     title: String,
     description: String,
-    date: {type: Date},
     area: String
 })
 

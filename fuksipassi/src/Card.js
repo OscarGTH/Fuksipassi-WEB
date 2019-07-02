@@ -14,6 +14,9 @@ import Button from "@material-ui/core/Button"
 import CompletionDialog from "./CardCompletionDialog.js"
 const styles = theme => ({
   card: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     maxWidth: 400
   },
   media: {

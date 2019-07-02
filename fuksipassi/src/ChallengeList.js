@@ -4,11 +4,14 @@ import LogoutIcon from "@material-ui/icons/Input";
 import UndoIcon from "@material-ui/icons/Undo";
 import RedoIcon from "@material-ui/icons/Redo";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
-import IconButton from '@material-ui/core/IconButton';
+import IconButton from "@material-ui/core/IconButton";
 import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
+import Fab from "@material-ui/core/Fab";
+import AddIcon from "@material-ui/icons/Add";
 import { Typography } from "@material-ui/core";
+import CreationDialog from "./ChallengeCreationDialog.js"
 class ChallengeList extends React.Component {
   constructor(props) {
     super(props);
@@ -18,7 +21,8 @@ class ChallengeList extends React.Component {
       doneChall: [],
       url: "http://localhost:3000/api/",
       tabValue: 0,
-      loading: true
+      showCreatDialog: false,
+      message: ""
     };
   }
 
@@ -59,7 +63,16 @@ class ChallengeList extends React.Component {
     });
     return true;
   };
-
+// Handles the clicks of the floating action button. Opens up the dialog.
+  handleCreationClick = () =>{
+    if(this.state.showCreatDialog != false){
+      this.getChallenges();
+    }
+    this.setState({
+      showCreatDialog: !this.state.showCreatDialog
+    })
+  }
+  
   // Handles the logging out
   handleLogout = () => {
     this.props.onLogout();
@@ -72,8 +85,8 @@ class ChallengeList extends React.Component {
       file: image[0]
     };
     var form_data = new FormData();
-    for (var name in entry_object){
-      form_data.append(name,entry_object[name])
+    for (var name in entry_object) {
+      form_data.append(name, entry_object[name]);
     }
 
     fetch(this.state.url + "entry", {
@@ -81,9 +94,8 @@ class ChallengeList extends React.Component {
       cache: "no-cache",
       body: form_data
     }).then(res => {
-      if(res.ok){
+      if (res.ok) {
         this.getChallenges();
-
       }
     });
   };
@@ -108,7 +120,11 @@ class ChallengeList extends React.Component {
         style={{ margin: "30px", listStyleType: "none" }}
       >
         <div>
-          <ExpandableCard challenge={challenge} type="0" onCompletion={this.handleCompletion} />
+          <ExpandableCard
+            challenge={challenge}
+            type="0"
+            onCompletion={this.handleCompletion}
+          />
         </div>
       </li>
     ));
@@ -123,25 +139,45 @@ class ChallengeList extends React.Component {
     const { tabValue } = this.state;
     return (
       <div>
-        <AppBar position="static"><div style={{ display: "flex" }}>
-          <Typography style={{ margin: 20 }}>
-            Logged in as {this.state.user.email}
-          </Typography>
-          <IconButton onClick={this.handleLogout}><LogoutIcon /></IconButton>
-          <IconButton onClick={this.handleProfile}><AccountCircleIcon /></IconButton>
-          <IconButton><RedoIcon/></IconButton>
-          <IconButton><UndoIcon/></IconButton>
-        </div></AppBar>
-        
+        <AppBar position="static">
+          <div style={{ display: "flex" }}>
+            <Typography style={{ margin: 20 }}>
+              Logged in as {this.state.user.email}
+            </Typography>
+            <IconButton onClick={this.handleLogout}>
+              <LogoutIcon />
+            </IconButton>
+            <IconButton onClick={this.handleProfile}>
+              <AccountCircleIcon />
+            </IconButton>
+            <IconButton>
+              <RedoIcon />
+            </IconButton>
+            <IconButton>
+              <UndoIcon />
+            </IconButton>
+          </div>
+        </AppBar>
 
         <AppBar position="static">
-          <Tabs value={tabValue} onChange={this.handleTabChange}>
+          <Tabs centered value={tabValue} onChange={this.handleTabChange}>
             <Tab label="Incompleted" />
             <Tab label="Completed" />
           </Tabs>
         </AppBar>
         {tabValue == 0 && this.undoneContent()}
         {tabValue == 1 && this.doneContent()}
+        {this.state.user.role && (
+          <Fab
+            color="primary"
+            aria-label="Add"
+            style={{ bottom: "5%", right: "5%", position: "absolute"}}
+            onClick={this.handleCreationClick}
+          >
+            <AddIcon />
+          </Fab>
+        )}
+        {this.state.showCreatDialog && <CreationDialog onClose={this.handleCreationClick}/>}
       </div>
     );
   }
