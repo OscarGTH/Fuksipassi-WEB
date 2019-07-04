@@ -34,6 +34,7 @@ class App extends React.Component {
           user: JSON.parse(localStorage.getItem("user"))
         });
       }
+     
     }
   }
 

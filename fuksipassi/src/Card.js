@@ -10,13 +10,14 @@ import CardActions from "@material-ui/core/CardActions";
 import Collapse from "@material-ui/core/Collapse";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import IconButton from "@material-ui/core/IconButton";
-import Button from "@material-ui/core/Button"
-import CompletionDialog from "./CardCompletionDialog.js"
+import Button from "@material-ui/core/Button";
+import CompletionDialog from "./CardCompletionDialog.js";
+import DeletionDialog from "./CardDeletionDialog.js";
 const styles = theme => ({
   card: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     maxWidth: 400
   },
   media: {
@@ -45,14 +46,29 @@ class ExpandableCard extends React.Component {
     super(props);
     this.state = {
       type: this.props.type,
-      object: this.props.challenge,
-      expanded: false
+      challenge: this.props.challenge,
+      expanded: false,
+      showCompDialog: false,
+      showDelDialog: false,
+      admin: this.props.admin
     };
   }
-  handleCompletion = file =>{
+
+  handleCompletion = file => {
     this.handleDialog();
-    this.props.onCompletion(this.state.object.challengeId,file)
-  }
+    this.props.onCompletion(this.state.challenge.challengeId, file);
+  };
+
+  handleDeletionDialog = () => {
+    this.setState({
+      showDelDialog: !this.state.showDelDialog
+    });
+  };
+
+  handleDeletion = () => {
+    this.props.onDeletion(this.state.challenge.challengeId);
+    this.handleDeletionDialog();
+  };
   // Handles the expansion of the card
   handleExpansion = () => {
     this.setState({
@@ -75,11 +91,11 @@ class ExpandableCard extends React.Component {
     }
   };
 
-  handleDialog = () =>{
+  handleDialog = () => {
     this.setState({
-      showDialog: !this.state.showDialog
-    })
-  }
+      showCompDialog: !this.state.showCompDialog
+    });
+  };
 
   undoneCard = () => {
     const { classes } = this.props;
@@ -87,7 +103,7 @@ class ExpandableCard extends React.Component {
       <Card className={classes.card}>
         <CardHeader> Card </CardHeader>
         <CardContent>
-          <Typography>{this.state.object.title}</Typography>
+          <Typography>{this.state.challenge.title}</Typography>
         </CardContent>
         <CardActions className={classes.actions}>
           <IconButton
@@ -99,13 +115,27 @@ class ExpandableCard extends React.Component {
           >
             <ExpandMoreIcon />
           </IconButton>
-          <Button size="small" color="primary" onClick={this.handleDialog}>
-          Complete
-        </Button>
+          {this.state.admin == 0 ? (
+            <Button size="small" color="primary" onClick={this.handleDialog}>
+              Complete
+            </Button>
+          ) : null}
+
+          {this.state.admin == 1 ? (
+            <Button
+              size="small"
+              color="primary"
+              onClick={this.handleDeletionDialog}
+            >
+              Delete
+            </Button>
+          ) : null}
         </CardActions>
         <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
           <CardContent>
-            <Typography paragraph>{this.state.object.description}</Typography>
+            <Typography paragraph>
+              {this.state.challenge.description}
+            </Typography>
           </CardContent>
         </Collapse>
       </Card>
@@ -113,13 +143,14 @@ class ExpandableCard extends React.Component {
   };
   doneCard = () => {
     const { classes } = this.props;
+    console.log(this.state.challenge);
     return (
       <Card className={classes.card}>
         <CardHeader> Card </CardHeader>
         <CardContent>
-          <Typography>{this.state.object.title}</Typography>
+          <Typography>{this.state.challenge.title}</Typography>
           <Typography>
-            <b>Date of completion:</b> {this.state.object.date}
+            <b>Date of completion:</b> {this.state.challenge.image.date}
           </Typography>
         </CardContent>
         <CardActions className={classes.actions}>
@@ -135,11 +166,12 @@ class ExpandableCard extends React.Component {
         </CardActions>
         <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
           <CardContent>
-            <Typography>{this.state.object.description}</Typography>
+            <Typography>{this.state.challenge.description}</Typography>
             <img
-            className={classes.media}
-              src={`data:image/jpeg;base64,${this.state.object.image.img.data}`}
-
+              className={classes.media}
+              src={`data:image/jpeg;base64,${
+                this.state.challenge.image.img.data
+              }`}
               alt="Proof of completion"
             />
           </CardContent>
@@ -151,9 +183,21 @@ class ExpandableCard extends React.Component {
   render() {
     return (
       <div>
-        {this.state.showDialog && <CompletionDialog onCancel={this.handleDialog} onComplete={this.handleCompletion}/>}
+        {this.state.showCompDialog && (
+          <CompletionDialog
+            onCancel={this.handleDialog}
+            onComplete={this.handleCompletion}
+          />
+        )}
         {this.props.type == 0 && this.undoneCard()}
         {this.props.type == 1 && this.doneCard()}
+        {this.state.showDelDialog && (
+          <DeletionDialog
+            title={this.state.challenge.title}
+            onCancel={this.handleDeletionDialog}
+            onDeletion={this.handleDeletion}
+          />
+        )}
       </div>
     );
   }

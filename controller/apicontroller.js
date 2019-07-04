@@ -206,6 +206,7 @@ exports.login = [
                   result_user.email = req.session.user.email;
                   result_user.role = req.session.user.role;
                   result_user.userId = req.session.user.userId;
+                  result_user.area = req.session.user.homeArea;
 
                   // Return the user and the jwt token to the client.
                   return res
@@ -421,31 +422,57 @@ exports.createChallenge = [
   check("title").isString(),
   check("description").isString(),
   (req, res) => {
-    /* Check that the user is admin. ENABLE ME WHEN FINISHED!!!!
-     *if(req.session.role == 1){*/
-    var challenge = new Challenge();
-    challenge.title = req.body.title;
-    challenge.description = req.body.description;
-    challenge.area = req.session.user.homeArea;
-    // Generate new challenge id for the challenge.
-    challenge.challengeId = ObjectID();
-    challenge.save(function(err, chall) {
-      if (err) {
-        res.status(401).json({ message: "Challenge creation failed" });
-      } else {
-        // Send status with a message and the challenge.
-        res.status(200).json({
-          challenge: chall,
-          message: "Challenge created successfully!"
-        });
-      }
-    });
-    /*} else{
-    res.status(401).json({ message: "Authorization failed" });
-  }*/
+    //Check that the user is admin. ENABLE ME WHEN FINISHED!!!!
+    if (req.session.user.role == 1) {
+      var challenge = new Challenge();
+      challenge.title = req.body.title;
+      challenge.description = req.body.description;
+      challenge.area = req.session.user.homeArea;
+      // Generate new challenge id for the challenge.
+      challenge.challengeId = ObjectID();
+      challenge.save(function(err, chall) {
+        if (err) {
+          res.status(401).json({ message: "Challenge creation failed" });
+        } else {
+          // Send status with a message and the challenge.
+          res.status(200).json({
+            challenge: chall,
+            message: "Challenge created successfully!"
+          });
+        }
+      });
+    } else {
+      res.status(401).json({ message: "Authorization failed" });
+    }
   }
 ];
-
+exports.deleteChallenge = function(req, res) {
+  if (req.session.user.role == 1) {
+    Challenge.remove({ challengeId: req.params.id })
+      .exec()
+      .then(result => {
+        // Check if there were any deleted challenges.
+        if (result.ok < 1) {
+          res.status(500).json({ message: "Deletion failed." });
+          return true;
+        } else {
+          Entry.remove({ challengeId: req.params.id })
+            .exec()
+            .then(result => {
+              // Check if there were any deleted challenges.
+              if (result.ok < 1) {
+                res.status(500).json({ message: "Deletion failed." });
+                return true;
+              } else {
+                res.status(200).json({ message: "Deletion successful." });
+              }
+            });
+        }
+      });
+  } else {
+    res.status(401).json({ message: "Authorization failed" });
+  }
+};
 // Completes a challenge
 exports.completeChallenge = [
   check("challengeId").isLength({ min: 24 }),
@@ -479,21 +506,22 @@ exports.completeChallenge = [
 exports.getUndoneChallenges = [
   check("userId").isLength({ min: 24 }),
   function(req, res) {
-      // Find all completed challenges by users id.
-      Entry.find({ userId: req.params.id }, { challengeId: 1, _id: 0 })
-        .exec()
-        .then(result => {
-          if (!result) {
-            console.log("Zero completed challenges.");
-            res.status(401).json({ message: "No completed challenges found." });
-          } else {
-            // Save the completed challenge's identifiers in an array.
-            var ids = new Array();
-            for (var i = 0; i < result.length; i++) {
-              // Cast identifiers to ObjectID
-              ids.push(ObjectID(result[i].challengeId));
-            }
-
+    // Find all completed challenges by users id.
+    Entry.find({ userId: req.params.id }, { challengeId: 1, _id: 0 })
+      .exec()
+      .then(result => {
+        if (!result) {
+          console.log("Zero completed challenges.");
+          res.status(401).json({ message: "No completed challenges found." });
+        } else {
+          // Save the completed challenge's identifiers in an array.
+          var ids = new Array();
+          for (var i = 0; i < result.length; i++) {
+            // Cast identifiers to ObjectID
+            ids.push(ObjectID(result[i].challengeId));
+          }
+          var nullTest = req.session.user;
+          if (typeof nullTest !== "undefined") {
             // Filter out the completed challenges and return the remaining.
             Challenge.find({
               challengeId: { $nin: ids },
@@ -503,9 +531,11 @@ exports.getUndoneChallenges = [
               .then(challenges => {
                 res.status(200).json({ data: challenges });
               });
+          } else {
+            res.status(404).json({ message: "Invalid login." });
           }
-        });
-   
+        }
+      });
   }
 ];
 // Finds and returns the completed challenges for specific user

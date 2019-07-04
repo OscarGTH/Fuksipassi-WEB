@@ -35,6 +35,8 @@ api.get("/challenge/undone/:id",controller.getUndoneChallenges);
 api.get("/challenge/done/:id",controller.getDoneChallenges);
 // Route to create a challenge
 api.post("/challenge",controller.createChallenge);
+// Deletes the selected challenge
+api.delete("/challenge/:id",controller.deleteChallenge);
 // Route to complete a challenge
 api.post("/entry",upload.single('file'),controller.completeChallenge);
 

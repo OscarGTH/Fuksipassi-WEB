@@ -11,7 +11,7 @@ import Tab from "@material-ui/core/Tab";
 import Fab from "@material-ui/core/Fab";
 import AddIcon from "@material-ui/icons/Add";
 import { Typography } from "@material-ui/core";
-import CreationDialog from "./ChallengeCreationDialog.js"
+import CreationDialog from "./ChallengeCreationDialog.js";
 class ChallengeList extends React.Component {
   constructor(props) {
     super(props);
@@ -63,19 +63,30 @@ class ChallengeList extends React.Component {
     });
     return true;
   };
-// Handles the clicks of the floating action button. Opens up the dialog.
-  handleCreationClick = () =>{
-    if(this.state.showCreatDialog != false){
+  // Handles the clicks of the floating action button. Opens up the dialog.
+  handleCreationClick = () => {
+    if (this.state.showCreatDialog != false) {
       this.getChallenges();
     }
     this.setState({
       showCreatDialog: !this.state.showCreatDialog
-    })
-  }
-  
+    });
+  };
+
   // Handles the logging out
   handleLogout = () => {
     this.props.onLogout();
+  };
+  // Deletes the selected challenge.
+  handleDeletion = challengeId => {
+    fetch(this.state.url + "challenge/" + challengeId, {
+      method: "DELETE",
+      cache: "no-cache"
+    }).then(res => {
+      if (res.ok) {
+        this.getChallenges();
+      }
+    });
   };
 
   handleCompletion = (challengeId, image) => {
@@ -114,20 +125,24 @@ class ChallengeList extends React.Component {
   }
   // Returns the cards for challenges that are not done.
   undoneContent() {
-    return this.state.undoneChall.map(challenge => (
-      <li
-        key={challenge.challengeId}
-        style={{ margin: "30px", listStyleType: "none" }}
-      >
-        <div>
-          <ExpandableCard
-            challenge={challenge}
-            type="0"
-            onCompletion={this.handleCompletion}
-          />
-        </div>
-      </li>
-    ));
+    if (typeof this.state.undoneChall !== "undefined") {
+      return this.state.undoneChall.map(challenge => (
+        <li
+          key={challenge.challengeId}
+          style={{ margin: "30px", listStyleType: "none" }}
+        >
+          <div>
+            <ExpandableCard
+              challenge={challenge}
+              type="0"
+              onCompletion={this.handleCompletion}
+              onDeletion={this.handleDeletion}
+              admin={this.state.user.role}
+            />
+          </div>
+        </li>
+      ));
+    }
   }
   // Handles the changing of tabs.
   handleTabChange = (event, newValue) => {
@@ -143,6 +158,9 @@ class ChallengeList extends React.Component {
           <div style={{ display: "flex" }}>
             <Typography style={{ margin: 20 }}>
               Logged in as {this.state.user.email}
+            </Typography>
+            <Typography style={{ margin: 20 }}>
+              Current area: <b> {this.state.user.area}</b>
             </Typography>
             <IconButton onClick={this.handleLogout}>
               <LogoutIcon />
@@ -167,17 +185,19 @@ class ChallengeList extends React.Component {
         </AppBar>
         {tabValue == 0 && this.undoneContent()}
         {tabValue == 1 && this.doneContent()}
-        {this.state.user.role && (
+        {this.state.user.role == 1 ? (
           <Fab
             color="primary"
             aria-label="Add"
-            style={{ bottom: "5%", right: "5%", position: "absolute"}}
+            style={{ bottom: "5%", right: "5%", position: "absolute" }}
             onClick={this.handleCreationClick}
           >
             <AddIcon />
           </Fab>
+        ):null}
+        {this.state.showCreatDialog && (
+          <CreationDialog onClose={this.handleCreationClick} />
         )}
-        {this.state.showCreatDialog && <CreationDialog onClose={this.handleCreationClick}/>}
       </div>
     );
   }
