@@ -1,9 +1,10 @@
 import RegisterForm from "./RegisterDialog.js";
-import CollectionForm from "./CollectionCreation.js"
+import CollectionForm from "./CollectionCreation.js";
 import React from "react";
 
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
+
 // Component to display login
 class LoginForm extends React.Component {
   constructor(props) {
@@ -56,7 +57,7 @@ class LoginForm extends React.Component {
     });
   };
   // Called when registration is done. Update state of message and close registration tab.
-  handleRegister = (message) => {
+  handleRegister = message => {
     this.setState({
       message: message,
       showUserReg: false,

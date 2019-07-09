@@ -66,9 +66,9 @@ exports.getUser = function(req, res) {
 // Updates the given user
 exports.updateUser = [
   check("email").isEmail(),
-  check("password").isLength({ min: 5 }),
   check("role").isIn([0, 1]),
   (req, res) => {
+
     // Check for validation errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
@@ -88,26 +88,35 @@ exports.updateUser = [
           // If the chosen email is acceptable, continue.
           if (emailFree) {
             // Find the editable user
-            User.findOne({ _id: req.body._id })
+            User.findOne({ userId: req.body.userId })
               .exec()
               .then(result => {
                 var passwordEdited = false;
+                var password = "bing";
                 // If the password hasn't remained the same, change it.
-                if (req.body.password !== result.password) {
-                  passwordEdited = true;
+                if (typeof req.body.password !== "undefined") {
+                  console.log("")
+                  if(req.body.password !== result.password){
+                    passwordEdited = true;
+                    password = req.body.password;
+                  }
                 }
                 // Hashing password.
-                bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+                bcrypt.hash(password, saltRounds, function(err, hash) {
                   if (err) {
+                    console.log(err)
                     res
                       .status(400)
-                      .json({ message: "Error when editing user" });
+                      .json({ message: "Error when editing user",
+                    user: req.session.user });
                   } else {
+                    console.log("Hashed and continuing.")
                     //Set email into an challenge
                     var user = { email: req.body.email };
                     // If the password has been edited, set the new hashed password to replace the old one.
                     if (passwordEdited) {
                       user.password = hash;
+                      console.log("password is set to a new one")
                     }
                     // If the editing user is an admin, allow role to be set also.
                     if (req.session.user.role) {
@@ -117,11 +126,12 @@ exports.updateUser = [
 
                   // Updating the user and returning the updated user.
                   User.findOneAndUpdate(
-                    { _id: req.body._id },
+                    { userId: req.body.userId },
                     { $set: user },
                     { new: true },
                     function(err, user) {
                       if (err) {
+                        console.log(err )
                         return res.status(400).json({
                           user: req.session.user,
                           message: "Error when editing user."
@@ -132,6 +142,7 @@ exports.updateUser = [
                         req.session.user = user;
                       }
                       // Return the new user
+                      console.log(user)
                       return res.status(200).json({
                         message: "User successfully updated",
                         user: user
@@ -236,11 +247,12 @@ exports.addUser = [
     // Validating the errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
-      Challenge.find({ area: req.body.area })
+      Area.find({ name: req.body.area })
         .exec()
         .then(coll => {
           if (typeof coll[0] === "undefined") {
             res.status(400).json({ message: "Invalid area name." });
+            return true;
           }
           // First off, make sure the email is not duplicate.
           User.find({ email: req.body.email })
@@ -408,8 +420,16 @@ exports.deleteUser = function(req, res) {
         if (result.deletedCount < 1) {
           res.status(401).json({ message: "Deletion failed" });
         } else if (result.deletedCount > 0) {
-          // Return status code with a message if deletion succeeded.
-          res.status(200).json({ message: "Deletion successful" });
+          Entry.deleteOne({ userId: req.params.id })
+            .exec()
+            .then(result => {
+              if (result.deletedCount < 1) {
+                res.status(401).json({ message: "Deletion failed" });
+              } else if (result.deletedCount > 0) {
+                // Return status code with a message if deletion succeeded.
+                res.status(200).json({ message: "Deletion successful" });
+              }
+            });
         }
       });
   } else {
@@ -511,7 +531,6 @@ exports.getUndoneChallenges = [
       .exec()
       .then(result => {
         if (!result) {
-          console.log("Zero completed challenges.");
           res.status(401).json({ message: "No completed challenges found." });
         } else {
           // Save the completed challenge's identifiers in an array.
@@ -520,8 +539,8 @@ exports.getUndoneChallenges = [
             // Cast identifiers to ObjectID
             ids.push(ObjectID(result[i].challengeId));
           }
-          var nullTest = req.session.user;
-          if (typeof nullTest !== "undefined") {
+          var loggedIn = req.session.user;
+          if (typeof loggedIn !== "undefined") {
             // Filter out the completed challenges and return the remaining.
             Challenge.find({
               challengeId: { $nin: ids },

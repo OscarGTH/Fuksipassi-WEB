@@ -107,7 +107,7 @@ class CreationDialog extends React.Component {
             variant="outlined"
             color="primary"
           >
-            Register
+            Create
           </Button>
           <Button
             onClick={this.handleCancel}

@@ -7,7 +7,9 @@ import {
   TextField,
   Button,
   Checkbox,
-  Typography
+  Typography,
+  FormControlLabel,
+  FormGroup
 } from "@material-ui/core";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
@@ -96,44 +98,49 @@ class CollectionForm extends React.Component {
         <DialogTitle> Register as an admin for your area </DialogTitle>
         <DialogContent>
           <div>
-            Create a new area for your challenges and become the admin of the area.
+            Create a new area for your challenges and become the admin of the
+            area.
           </div>
-          <Typography className={classes.typography}> User </Typography>
+          <Typography className={classes.typography}>
+            {" "}
+            <b>User </b>
+          </Typography>
+          <div>
+            <TextField label="Email" onChange={this.handleChange("email")} />
+          </div>
           <div>
             <TextField
-              className={classes.fields}
-              label="Email"
-              onChange={this.handleChange("email")}
-            />
-          </div>
-          <div>
-            <TextField
-              className={classes.fields}
               label="Password"
               onChange={this.handleChange("password")}
             />
           </div>
-          <Typography className={classes.typography}>Area</Typography>
+          <Typography className={classes.typography}>
+            <b>Area</b>
+          </Typography>
 
-          <TextField
-            className={classes.fields}
-            label="Name"
-            onChange={this.handleChange("area")}
-          />
-          <Checkbox
+          <TextField label="Name" onChange={this.handleChange("area")} />
+          <FormGroup row>
+            <FormControlLabel
+            control={
+            <Checkbox
             onChange={this.handleCheckBox}
             inputProps={{
               "aria-label": "primary checkbox"
             }}
             value={this.state.passBool}
           />
-
-          <TextField
-            className={classes.fields}
-            disabled={!this.state.passBool}
-            label="Password"
-            onChange={this.handleChange("area_pass")}
-          />
+            }
+            label="Password protected"
+           />
+          </FormGroup>
+          
+          {this.state.passBool && (
+            <TextField
+              disabled={!this.state.passBool}
+              label="Password"
+              onChange={this.handleChange("area_pass")}
+            />
+          )}
         </DialogContent>
 
         <DialogActions>

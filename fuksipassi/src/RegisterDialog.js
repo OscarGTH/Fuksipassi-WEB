@@ -41,19 +41,12 @@ class RegisterForm extends React.Component {
         method: "POST",
         body: JSON.stringify(user)
       })
-        .then(res => this.handleErrors(res))
         .then(res => res.json())
         .then(body => {
-          this.props.onClose(body.email, body.message);
+          this.props.onClose(body.message);
         });
     };
-    // Handles errors when signing up.
-    handleErrors = response => {
-      if (!response.ok) {
-        this.props.onClose();
-      }
-      return response;
-    };
+   
 
     render() {
       return (

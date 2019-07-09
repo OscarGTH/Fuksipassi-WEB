@@ -12,6 +12,14 @@ import Fab from "@material-ui/core/Fab";
 import AddIcon from "@material-ui/icons/Add";
 import { Typography } from "@material-ui/core";
 import CreationDialog from "./ChallengeCreationDialog.js";
+import PropTypes from "prop-types";
+import { withStyles } from "@material-ui/core/styles";
+const styles = theme => ({
+  appbar: {
+    backgroundColor: "#7CB9E8",
+    color: "#000000"
+  }
+});
 class ChallengeList extends React.Component {
   constructor(props) {
     super(props);
@@ -73,10 +81,7 @@ class ChallengeList extends React.Component {
     });
   };
 
-  // Handles the logging out
-  handleLogout = () => {
-    this.props.onLogout();
-  };
+
   // Deletes the selected challenge.
   handleDeletion = challengeId => {
     fetch(this.state.url + "challenge/" + challengeId, {
@@ -151,33 +156,13 @@ class ChallengeList extends React.Component {
     });
   };
   render() {
+    const { classes } = this.props;
     const { tabValue } = this.state;
     return (
       <div>
-        <AppBar position="static">
-          <div style={{ display: "flex" }}>
-            <Typography style={{ margin: 20 }}>
-              Logged in as {this.state.user.email}
-            </Typography>
-            <Typography style={{ margin: 20 }}>
-              Current area: <b> {this.state.user.area}</b>
-            </Typography>
-            <IconButton onClick={this.handleLogout}>
-              <LogoutIcon />
-            </IconButton>
-            <IconButton onClick={this.handleProfile}>
-              <AccountCircleIcon />
-            </IconButton>
-            <IconButton>
-              <RedoIcon />
-            </IconButton>
-            <IconButton>
-              <UndoIcon />
-            </IconButton>
-          </div>
-        </AppBar>
+       
 
-        <AppBar position="static">
+        <AppBar className={classes.appbar} position="static">
           <Tabs centered value={tabValue} onChange={this.handleTabChange}>
             <Tab label="Incompleted" />
             <Tab label="Completed" />
@@ -194,7 +179,7 @@ class ChallengeList extends React.Component {
           >
             <AddIcon />
           </Fab>
-        ):null}
+        ) : null}
         {this.state.showCreatDialog && (
           <CreationDialog onClose={this.handleCreationClick} />
         )}
@@ -202,4 +187,7 @@ class ChallengeList extends React.Component {
     );
   }
 }
-export default ChallengeList;
+ChallengeList.propTypes = {
+  classes: PropTypes.object.isRequired
+};
+export default withStyles(styles)(ChallengeList);
