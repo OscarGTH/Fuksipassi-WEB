@@ -15,32 +15,24 @@ const { check, validationResult } = require("express-validator/check");
 exports.getUsers = function(req, res) {
   // Check that the user has logged in.
   if (req.session.user.role == 1) {
-    // Find all users.
-    User.find()
+    // Find all users in the current home area except the one who is querying it.
+    User.find({
+      homeArea: req.session.user.homeArea,
+      userId: { $ne: req.session.user.userId }
+    },{password: 0, homeArea: 0,_id: 0})
       .exec()
-      .then(user => {
-        if (!user) {
-          res.sendStatus(404).json({ message: "Cannot find users." });
+      .then(result => {
+        // If there aren't any result, return error.
+        if (!result) {
+          res.status(404).json({ message: "Cannot find users." });
         } else {
           res.status(200).json({
-            user
+            users: result
           });
         }
       });
   } else {
-    // If the requesting user is basic user, only return basic users.
-    User.find({ role: 0 })
-      .exec()
-      .then(user => {
-        if (!user) {
-          res.sendStatus(404).json({ message: "Cannot find users." });
-        } else {
-          // Return founds users in json format.
-          res.status(200).json({
-            user
-          });
-        }
-      });
+    res.status(401).json({ message: "Authorization failed" });
   }
 };
 
@@ -68,7 +60,6 @@ exports.updateUser = [
   check("email").isEmail(),
   check("role").isIn([0, 1]),
   (req, res) => {
-
     // Check for validation errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
@@ -95,8 +86,8 @@ exports.updateUser = [
                 var password = "bing";
                 // If the password hasn't remained the same, change it.
                 if (typeof req.body.password !== "undefined") {
-                  console.log("")
-                  if(req.body.password !== result.password){
+                  console.log("");
+                  if (req.body.password !== result.password) {
                     passwordEdited = true;
                     password = req.body.password;
                   }
@@ -104,19 +95,16 @@ exports.updateUser = [
                 // Hashing password.
                 bcrypt.hash(password, saltRounds, function(err, hash) {
                   if (err) {
-                    console.log(err)
-                    res
-                      .status(400)
-                      .json({ message: "Error when editing user",
-                    user: req.session.user });
+                    res.status(400).json({
+                      message: "Error when editing user",
+                      user: req.session.user
+                    });
                   } else {
-                    console.log("Hashed and continuing.")
                     //Set email into an challenge
                     var user = { email: req.body.email };
                     // If the password has been edited, set the new hashed password to replace the old one.
                     if (passwordEdited) {
                       user.password = hash;
-                      console.log("password is set to a new one")
                     }
                     // If the editing user is an admin, allow role to be set also.
                     if (req.session.user.role) {
@@ -131,7 +119,7 @@ exports.updateUser = [
                     { new: true },
                     function(err, user) {
                       if (err) {
-                        console.log(err )
+                        console.log(err);
                         return res.status(400).json({
                           user: req.session.user,
                           message: "Error when editing user."
@@ -142,7 +130,6 @@ exports.updateUser = [
                         req.session.user = user;
                       }
                       // Return the new user
-                      console.log(user)
                       return res.status(200).json({
                         message: "User successfully updated",
                         user: user

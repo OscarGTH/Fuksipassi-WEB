@@ -103,32 +103,30 @@ class LoginForm extends React.Component {
         />
 
         <div>
-          <Button onClick={this.login} style={{ backgroundColor: "Lavender" }}>
+          <Button onClick={this.login} style={{ backgroundColor: "Lavender" }} variant="contained">
             Login
           </Button>
         </div>
         <div>
-          <div>
-            Create an account?
+          <div> 
             <p
               id="signup"
               onClick={this.toggleUserRegister}
               style={{ color: "blue" }}
             >
-              Sign up
+             Create an account?
             </p>
             {this.state.showUserReg && (
               <RegisterForm onClose={this.handleRegister} />
             )}
           </div>
           <div>
-            Create an area?
             <p
               id="signup"
               onClick={this.toggleAdminRegister}
               style={{ color: "blue" }}
             >
-              Create
+              Create an area?
             </p>
             {this.state.showAdminReg && (
               <CollectionForm onClose={this.handleRegister} />

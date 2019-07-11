@@ -16,7 +16,6 @@ import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 const styles = theme => ({
   appbar: {
-    backgroundColor: "#7CB9E8",
     color: "#000000"
   }
 });
@@ -24,6 +23,7 @@ class ChallengeList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      barColor: this.props.color,
       user: this.props.user,
       undoneChall: [],
       doneChall: [],
@@ -162,9 +162,9 @@ class ChallengeList extends React.Component {
       <div>
        
 
-        <AppBar className={classes.appbar} position="static">
-          <Tabs centered value={tabValue} onChange={this.handleTabChange}>
-            <Tab label="Incompleted" />
+        <AppBar className={classes.appbar} style={{backgroundColor: this.state.barColor}} position="static">
+          <Tabs TabIndicatorProps={{style: {backgroundColor: "#000", height: "3px"}}} centered value={tabValue} onChange={this.handleTabChange}>
+            <Tab label="Incompleted"/>
             <Tab label="Completed" />
           </Tabs>
         </AppBar>
@@ -174,7 +174,7 @@ class ChallengeList extends React.Component {
           <Fab
             color="primary"
             aria-label="Add"
-            style={{ bottom: "5%", right: "5%", position: "absolute" }}
+            style={{ bottom: "5%", right: "5%", position: "absolute", backgroundColor: this.state.barColor }}
             onClick={this.handleCreationClick}
           >
             <AddIcon />

@@ -50,8 +50,6 @@ class ProfileDialog extends React.Component {
     this.props.onClose();
   };
 
-  // Calls method from parent component with edited user as parameter.
-  handleEdit = () => {};
   // Calls parent component's deletion method with the user id.
   handleDelete = () => {
     this.props.onDelete(this.state.user.userId);
@@ -200,19 +198,20 @@ class ProfileDialog extends React.Component {
           <Button
             onClick={this.handleDelete}
             style={{ backgroundColor: "red" }}
-            variant="outlined"
-            color="primary"
+            variant="contained"
+            color="secondary"
+            
           >
             Unregister
           </Button>
           <Button
             onClick={this.handleCancel}
-            variant="outlined"
+            variant="contained"
             color="primary"
           >
             Cancel
           </Button>
-          <Button onClick={this.handleUpdate} variant="outlined" color="primary">
+          <Button onClick={this.handleUpdate} variant="contained" color="primary">
             Edit
           </Button>
         </DialogActions>

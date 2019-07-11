@@ -74,20 +74,21 @@ class RegisterForm extends React.Component {
           </DialogContent>
 
           <DialogActions>
+          <Button
+              onClick={this.handleCancel}
+              variant="contained"
+              color="secondary"
+            >
+              Cancel
+            </Button>
             <Button
               onClick={this.handleRegister}
-              variant="outlined"
+              variant="contained"
               color="primary"
             >
               Register
             </Button>
-            <Button
-              onClick={this.handleCancel}
-              variant="outlined"
-              color="primary"
-            >
-              Cancel
-            </Button>
+            
           </DialogActions>
         </Dialog>
       );

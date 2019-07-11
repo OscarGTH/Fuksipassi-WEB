@@ -2,15 +2,21 @@ import React from "react";
 import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
 import Grid from "@material-ui/core/Grid";
 import LoginForm from "./Login.js";
-import AppBar from "@material-ui/core/AppBar";
+import ToolBar from "@material-ui/core/AppBar";
+import Settings from "./Settings.js";
 import LogoutIcon from "@material-ui/icons/Input";
 import UndoIcon from "@material-ui/icons/Undo";
 import RedoIcon from "@material-ui/icons/Redo";
+import MenuIcon from "@material-ui/icons/Menu";
+import Drawer from "@material-ui/core/Drawer";
+import MenuItem from "@material-ui/core/MenuItem";
+import UserList from "./UserList";
 import { Typography } from "@material-ui/core";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import ProfileDialog from "./ProfileDialog.js";
 import IconButton from "@material-ui/core/IconButton";
 import ChallengeList from "./ChallengeList.js";
+
 
 class App extends React.Component {
   constructor() {
@@ -22,13 +28,27 @@ class App extends React.Component {
       user: "",
       // JSON web token
       token: "",
+      // Color theme of the app bar
+      barColor: "#7CB9E8",
       // Toggle boolean for editing profile.
-      editProfile: false
+      editProfile: false,
+      // Toggle boolean for viewing settings view.
+      showSettings: false,
+      // Toggle boolean for viewing settings view.
+      showUsers: false,
+      // Toggle for drawer opening
+      openDrawer: false
     };
     this.setAuthenticate = this.setAuthenticate.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
   }
   componentDidMount() {
+
+    if(localStorage.getItem("color") !== null){
+      this.setState({
+        barColor: localStorage.getItem("color")
+      })
+    }
     // Check if the user has already logged in.
     if (localStorage.getItem("session") !== null) {
       var session_obj = JSON.parse(localStorage.getItem("session"));
@@ -44,6 +64,7 @@ class App extends React.Component {
         });
       }
     }
+  
   }
 
   // Method that is called after login. Sets token and other important information to state.
@@ -80,7 +101,7 @@ class App extends React.Component {
         editProfile: false
       })
     );
-    
+
     localStorage.clear();
   };
   // Toggles the profile editing dialog.
@@ -90,14 +111,40 @@ class App extends React.Component {
     });
   };
   // Changes the email of the user to the updated email.
-  handleEdit = (email) =>{
-    console.log(email)
+  handleEdit = email => {
     var updatedUser = this.state.user;
     updatedUser.email = email;
     this.setState({
       user: updatedUser
+    });
+  };
+  // Toggles the drawer open and close.
+  handleDrawerToggle = () => {
+    this.setState({
+      openDrawer: !this.state.openDrawer
+    });
+  };
+  // Handles the toggle of settings menu
+  handleSettings = () => {
+    this.setState({
+      showSettings: !this.state.showSettings
+    });
+  };
+  // Handles the toggle of user list.
+  handleUserList = () => {
+    this.setState({
+      showUsers: !this.state.showUsers
+    });
+  };
+  // Handles the theme color changing from settings view
+  handleColorChange = hex => {
+    // Save color into local storage, so it doesn't get lost when refreshing page.
+    localStorage.setItem("color", hex);
+    this.setState({
+      barColor: hex
     })
-  }
+    this.handleSettings();
+  };
 
   render() {
     return (
@@ -105,42 +152,74 @@ class App extends React.Component {
         <MuiThemeProvider>
           {this.state.auth ? (
             <div>
-              <AppBar position="static">
-                <div style={{ display: "flex" }}>
-                  <Typography style={{ margin: 20 }}>
-                    Logged in as {this.state.user.email}
-                  </Typography>
-                  <Typography style={{ margin: 20 }}>
-                    Current area: <b> {this.state.user.area}</b>
-                  </Typography>
-                  <IconButton onClick={this.handleLogout}>
-                    <LogoutIcon />
-                  </IconButton>
-                  <IconButton onClick={this.handleProfile}>
-                    <AccountCircleIcon />
-                  </IconButton>
-                  <IconButton>
-                    <RedoIcon />
-                  </IconButton>
-                  <IconButton>
-                    <UndoIcon />
-                  </IconButton>
+              {this.state.showSettings || this.state.showUsers ? (
+                <div>
+                  {this.state.showSettings && (
+                    <Settings onClose={this.handleSettings} onSave={this.handleColorChange}/>
+                  )}
+                  {this.state.showUsers && (
+                    <UserList onClose={this.handleUserList} token={this.state.token} user={this.state.user} />
+                  )}
                 </div>
-              </AppBar>
-              <ChallengeList
-                user={this.state.user}
-                token={this.state.token}
-                onLogout={this.handleLogout}
-              />
-              {this.state.editProfile && (
-                <ProfileDialog
-                  targetUser={this.state.user}
-                  currentUser={this.state.user}
-                  token={this.state.token}
-                  onClose={this.handleProfile}
-                  onDelete={this.handleLogout}
-                  onEdit={this.handleEdit}
-                />
+              ) : (
+                <div>
+                  <ToolBar position="static" style={{backgroundColor: this.state.barColor}}>
+                    <Drawer
+                      onClick={this.handleDrawerToggle}
+                      width={300}
+                      open={this.state.openDrawer}
+                      docked={false}
+                    >
+                      <MenuItem onClick={this.handleSettings}>
+                        Settings
+                      </MenuItem>
+                      {this.state.user.role ? (
+                        <MenuItem onClick={this.handleUserList}>
+                          List of users
+                        </MenuItem>
+                      ) : null}
+                    </Drawer>
+                    <div style={{ display: "flex" }}>
+                      <IconButton onClick={this.handleDrawerToggle}>
+                        <MenuIcon />
+                      </IconButton>
+                      <Typography style={{ margin: 20 }}>
+                        Logged in as {this.state.user.email}
+                      </Typography>
+                      <Typography style={{ margin: 20 }}>
+                        Current area: <b> {this.state.user.area}</b>
+                      </Typography>
+                      <IconButton onClick={this.handleLogout}>
+                        <LogoutIcon />
+                      </IconButton>
+                      <IconButton onClick={this.handleProfile}>
+                        <AccountCircleIcon />
+                      </IconButton>
+                      <IconButton>
+                        <RedoIcon />
+                      </IconButton>
+                      <IconButton>
+                        <UndoIcon />
+                      </IconButton>
+                    </div>
+                  </ToolBar>
+                  <ChallengeList
+                    user={this.state.user}
+                    token={this.state.token}
+                    onLogout={this.handleLogout}
+                    color={this.state.barColor}
+                  />
+                  {this.state.editProfile && (
+                    <ProfileDialog
+                      targetUser={this.state.user}
+                      currentUser={this.state.user}
+                      token={this.state.token}
+                      onClose={this.handleProfile}
+                      onDelete={this.handleLogout}
+                      onEdit={this.handleEdit}
+                    />
+                  )}
+                </div>
               )}
             </div>
           ) : (

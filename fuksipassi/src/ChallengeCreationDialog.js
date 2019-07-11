@@ -96,26 +96,28 @@ class CreationDialog extends React.Component {
             <TextField
               className={classes.fields}
               label="Description"
+              multiline={true}
               onChange={this.handleChange("description")}
             />
           </div>
         </DialogContent>
 
         <DialogActions>
+        <Button
+            onClick={this.handleCancel}
+            variant="contained"
+            color="secondary"
+          >
+            Cancel
+          </Button>
           <Button
             onClick={this.handleCreation}
-            variant="outlined"
+            variant="contained"
             color="primary"
           >
             Create
           </Button>
-          <Button
-            onClick={this.handleCancel}
-            variant="outlined"
-            color="primary"
-          >
-            Cancel
-          </Button>
+          
         </DialogActions>
       </Dialog>
     );

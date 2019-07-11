@@ -95,14 +95,13 @@ class CollectionForm extends React.Component {
     const { classes } = this.props;
     return (
       <Dialog open={true}>
-        <DialogTitle> Register as an admin for your area </DialogTitle>
+        <DialogTitle> Create a new area </DialogTitle>
         <DialogContent>
           <div>
-            Create a new area for your challenges and become the admin of the
+            Create a new area to store your upcoming challenges and become the admin user of the
             area.
           </div>
           <Typography className={classes.typography}>
-            {" "}
             <b>User </b>
           </Typography>
           <div>
@@ -144,20 +143,21 @@ class CollectionForm extends React.Component {
         </DialogContent>
 
         <DialogActions>
+        <Button
+            onClick={this.handleCancel}
+            variant="contained"
+            color="secondary"
+          >
+            Cancel
+          </Button>
           <Button
             onClick={this.handleRegister}
-            variant="outlined"
+            variant="contained"
             color="primary"
           >
             Register
           </Button>
-          <Button
-            onClick={this.handleCancel}
-            variant="outlined"
-            color="primary"
-          >
-            Cancel
-          </Button>
+          
         </DialogActions>
       </Dialog>
     );
