@@ -495,6 +495,7 @@ exports.completeChallenge = [
       entry.userId = req.body.userId;
       entry.img.data = fs.readFileSync(req.file.path);
       entry.img.contentType = "image/jpeg";
+      entry.verified = false;
       entry.save(function(err, data) {
         if (err) {
           res.status(401).json({ message: "Challenge completion failed" });
@@ -509,6 +510,23 @@ exports.completeChallenge = [
     }
   }
 ];
+// Verifies unverified challenges.
+exports.verifyChallenge = [
+  check("userId").isLength({min: 24}),
+  check("challengeId").isLength({min:24}), function(req,res){
+    Entry.updateOne(
+      { userId: req.params.userId, challengeId: req.params.challengeId },
+      { $set: {verified: true}})
+      .exec()
+      .then(result =>{
+        if(result.ok < 1){
+          res.status(400).json({message: "Updating failed"})
+        } else{
+          res.status(200).json({message: "Entry verified successfully"})
+        }
+      })
+  }
+]
 
 exports.getUndoneChallenges = [
   check("userId").isLength({ min: 24 }),
@@ -545,11 +563,41 @@ exports.getUndoneChallenges = [
   }
 ];
 // Finds and returns the completed challenges for specific user
+exports.getVerifiableChallenges = 
+  function(req, res) {
+    // Find all challenges the user has completed.
+    Challenge.find({ area: req.session.user.homeArea }, { _id: 0, title: 0, description: 0, area: 0 })
+      .exec()
+      .then(result => {
+        console.log(result)
+        // Check if the user hasn't completed any challenges.
+        if (!result) {
+          res.status(401).json({ message: "No completed challenges found." });
+        } else {
+          // Save the completed challenge's identifiers in an array.
+          var ids = new Array();
+          for (var i = 0; i < result.length; i++) {
+            // Cast identifiers to ObjectID
+            ids.push(ObjectID(result[i].challengeId));
+          }
+          const promises = result.map((image, i) =>
+            Entry.aggregate([
+              { $match: { challengeId: ids[i],verified: false } }
+            ]).exec()
+          );
+          Promise.all(promises).then(promise_results =>
+            res.status(200).json({ data: promise_results })
+          );
+        }
+      });
+  }
+
+// Finds and returns the completed challenges for specific user
 exports.getDoneChallenges = [
   check("userId").isLength({ min: 24 }),
   function(req, res) {
     // Find all challenges the user has completed.
-    Entry.find({ userId: req.params.id }, { _id: 0 })
+    Entry.find({ userId: req.params.id, verified: true }, { _id: 0 })
       .sort({ challengeId: -1 })
       .exec()
       .then(result => {
@@ -557,6 +605,39 @@ exports.getDoneChallenges = [
         if (!result) {
           console.log("Zero completed challenges.");
           res.status(401).json({ message: "No completed challenges found." });
+        } else {
+          // Save the completed challenge's identifiers in an array.
+          var ids = new Array();
+          for (var i = 0; i < result.length; i++) {
+            // Cast identifiers to ObjectID
+            ids.push(ObjectID(result[i].challengeId));
+          }
+          const promises = result.map((image, i) =>
+            Challenge.aggregate([
+              { $match: { challengeId: ids[i] } },
+              { $addFields: { image } }
+            ]).exec()
+          );
+          Promise.all(promises).then(promise_results =>
+            res.status(200).json({ data: promise_results })
+          );
+        }
+      });
+  }
+];
+// Finds and returns the unverified completed challenges for specific user
+exports.getUnverifiedChallenges = [
+  check("userId").isLength({ min: 24 }),
+  function(req, res) {
+    // Find all challenges the user has completed.
+    Entry.find({ userId: req.params.id, verified: false }, { _id: 0 })
+      .sort({ challengeId: -1 })
+      .exec()
+      .then(result => {
+        // Check if the user hasn't completed any challenges.
+        if (!result) {
+     
+          res.status(401).json({ message: "No unverified challenges found." });
         } else {
           // Save the completed challenge's identifiers in an array.
           var ids = new Array();

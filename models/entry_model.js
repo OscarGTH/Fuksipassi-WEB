@@ -6,7 +6,8 @@ var EntrySchema = new Schema({
   challengeId: ObjectId,
   userId: ObjectId,
   date: { type: Date, default: Date.now},
-  img: { data: Buffer, contentType: String}
+  img: { data: Buffer, contentType: String},
+  verified: Boolean
 })
 
 
