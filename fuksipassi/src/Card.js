@@ -141,9 +141,108 @@ class ExpandableCard extends React.Component {
       </Card>
     );
   };
+
+  unverifiedCard = () => {
+    const { classes } = this.props;
+    return (
+      <Card className={classes.card}>
+        <CardHeader> Card </CardHeader>
+        <CardContent>
+          <Typography>{this.state.challenge.title}</Typography>
+        </CardContent>
+        <CardActions className={classes.actions}>
+          <IconButton
+            className={classnames(classes.expand, {
+              [classes.expandOpen]: this.state.expanded
+            })}
+            onClick={this.handleExpansion}
+            aria-expanded={this.state.expanded}
+          >
+            <ExpandMoreIcon />
+          </IconButton>
+          <Button
+            size="small"
+            color="primary"
+            onClick={this.handleUnverifiedDelete}
+          >
+            Delete
+          </Button>
+        </CardActions>
+        <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
+          <CardContent>
+            <Typography paragraph>
+              {this.state.challenge.description}
+            </Typography>
+            <img
+              className={classes.media}
+              src={`data:image/jpeg;base64,${
+                this.state.challenge.image.img.data
+              }`}
+              alt="Proof of completion"
+            />
+          </CardContent>
+        </Collapse>
+      </Card>
+    );
+  };
+  pendingCard = () => {
+    console.log("Lol oon pendingisss!")
+    const { classes } = this.props;
+    return (
+      <Card className={classes.card}>
+        <CardHeader> Card </CardHeader>
+        <CardContent>
+          <Typography>{this.state.challenge.info.title}</Typography>
+          <Typography>
+            <b>User:</b> {this.state.challenge.email}
+          </Typography>
+        </CardContent>
+        <CardActions className={classes.actions}>
+          <IconButton
+            className={classnames(classes.expand, {
+              [classes.expandOpen]: this.state.expanded
+            })}
+            onClick={this.handleExpansion}
+            aria-expanded={this.state.expanded}
+          >
+            <ExpandMoreIcon />
+          </IconButton>
+          <Button
+            size="small"
+            color="primary"
+            onClick={this.handlePendingDelete}
+          >
+            Delete
+          </Button>
+
+          <Button
+            size="small"
+            color="primary"
+            onClick={this.handleVerifyDialog}
+          >
+            Verify
+          </Button>
+        </CardActions>
+        <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
+          <CardContent>
+            <Typography paragraph>
+              {this.state.challenge.info.description}
+            </Typography>
+            <img
+              className={classes.media}
+              src={`data:image/jpeg;base64,${
+                this.state.challenge.img.data
+              }`}
+              alt="Proof of completion"
+            />
+          </CardContent>
+        </Collapse>
+      </Card>
+    );
+  };
+
   doneCard = () => {
     const { classes } = this.props;
-    console.log(this.state.challenge);
     return (
       <Card className={classes.card}>
         <CardHeader> Card </CardHeader>
@@ -190,7 +289,9 @@ class ExpandableCard extends React.Component {
           />
         )}
         {this.props.type == 0 && this.undoneCard()}
-        {this.props.type == 1 && this.doneCard()}
+        {this.props.type == 1 && this.unverifiedCard()}
+        {this.props.type == 2 && this.pendingCard()}
+        {this.props.type == 3 && this.doneCard()}
         {this.state.showDelDialog && (
           <DeletionDialog
             title={this.state.challenge.title}

@@ -36,9 +36,7 @@ app.use(cookieParser());
 app.use(filter({dispatchToErrorHandler: true,methodList:['POST', 'DELETE','GET']}))
 app.use(helmet());
 app.use(expressValidator());
-var date = "1997-06-23";
-var isodate = new Date(date);
-console.log(isodate)
+
 
 
 

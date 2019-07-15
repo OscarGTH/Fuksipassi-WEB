@@ -32,9 +32,11 @@ api.get("/logout", Auth.tokenAuth, Auth.checkLogin, controller.logout);
 // Route to get all challenges
 api.get("/challenge/undone/:id",controller.getUndoneChallenges);
 // Route to get all challenges
+api.get("/challenge/pending/:id",controller.getUnverifiedChallenges);
+// Route to get all challenges
 api.get("/challenge/done/:id",controller.getDoneChallenges);
 // Route to get  verifiable challenges for admins
-api.get("/challenge/verifiable",Auth.checkLogin,controller.getVerifiableChallenges);
+api.get("/challenge/pending",Auth.checkLogin,controller.getPendingChallenges);
 // Route to verify a challenge
 api.patch("/challenge/verify/:userId/:challengeId",controller.verifyChallenge)
 // Route to create a challenge

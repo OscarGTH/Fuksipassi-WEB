@@ -60,7 +60,7 @@ class UserList extends React.Component {
           />
         )}
         <div>
-          <Typography>List of users registered in your area</Typography>
+          <Typography>List of users in your area</Typography>
           <Typography>
             Number of users: <b>{this.state.users.length}</b>
           </Typography>

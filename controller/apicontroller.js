@@ -16,10 +16,13 @@ exports.getUsers = function(req, res) {
   // Check that the user has logged in.
   if (req.session.user.role == 1) {
     // Find all users in the current home area except the one who is querying it.
-    User.find({
-      homeArea: req.session.user.homeArea,
-      userId: { $ne: req.session.user.userId }
-    },{password: 0, homeArea: 0,_id: 0})
+    User.find(
+      {
+        homeArea: req.session.user.homeArea,
+        userId: { $ne: req.session.user.userId }
+      },
+      { password: 0, homeArea: 0, _id: 0 }
+    )
       .exec()
       .then(result => {
         // If there aren't any result, return error.
@@ -158,9 +161,7 @@ exports.login = [
   check("email").isEmail(),
   check("password").isLength({ min: 5 }),
   (req, res) => {
-    if (typeof req.session.user !== "undefined") {
-      console.log(req.session.user.token);
-    }
+    console.log("Logged in")
     // Checking for validation errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
@@ -485,7 +486,6 @@ exports.completeChallenge = [
   check("challengeId").isLength({ min: 24 }),
   check("userId").isLength({ min: 24 }),
   (req, res) => {
-    console.log(req.file.path + req.session.user.userId);
     if (
       req.session.user !== "undefined" &&
       req.session.user.userId === req.body.userId
@@ -493,6 +493,7 @@ exports.completeChallenge = [
       var entry = new Entry();
       entry.challengeId = req.body.challengeId;
       entry.userId = req.body.userId;
+      entry.email = req.session.user.email;
       entry.img.data = fs.readFileSync(req.file.path);
       entry.img.contentType = "image/jpeg";
       entry.verified = false;
@@ -510,23 +511,57 @@ exports.completeChallenge = [
     }
   }
 ];
+
+// Deletes a completed challenge
+exports.deleteEntry = [
+  check("challengeId").isLength({ min: 24 }),
+  check("userId").isLength({ min: 24 }),
+  (req, res) => {
+    if (
+      req.session.user !== "undefined" &&
+      req.session.user.userId === req.body.userId
+    ) {
+      var entry = new Entry();
+      entry.challengeId = req.body.challengeId;
+      entry.userId = req.body.userId;
+      entry.email = req.session.user.email;
+      entry.img.data = fs.readFileSync(req.file.path);
+      entry.img.contentType = "image/jpeg";
+      entry.verified = false;
+      entry.save(function(err, data) {
+        if (err) {
+          res.status(401).json({ message: "Challenge completion failed" });
+        } else {
+          res.status(200).json({
+            message: "Challenge completed successfully!"
+          });
+        }
+      });
+    } else {
+      res.status(401).json({ message: "Authorization failed" });
+    }
+  }
+];
+
 // Verifies unverified challenges.
 exports.verifyChallenge = [
-  check("userId").isLength({min: 24}),
-  check("challengeId").isLength({min:24}), function(req,res){
+  check("userId").isLength({ min: 24 }),
+  check("challengeId").isLength({ min: 24 }),
+  function(req, res) {
     Entry.updateOne(
       { userId: req.params.userId, challengeId: req.params.challengeId },
-      { $set: {verified: true}})
+      { $set: { verified: true } }
+    )
       .exec()
-      .then(result =>{
-        if(result.ok < 1){
-          res.status(400).json({message: "Updating failed"})
-        } else{
-          res.status(200).json({message: "Entry verified successfully"})
+      .then(result => {
+        if (result.ok < 1) {
+          res.status(400).json({ message: "Updating failed" });
+        } else {
+          res.status(200).json({ message: "Entry verified successfully" });
         }
-      })
+      });
   }
-]
+];
 
 exports.getUndoneChallenges = [
   check("userId").isLength({ min: 24 }),
@@ -562,35 +597,38 @@ exports.getUndoneChallenges = [
       });
   }
 ];
-// Finds and returns the completed challenges for specific user
-exports.getVerifiableChallenges = 
-  function(req, res) {
-    // Find all challenges the user has completed.
-    Challenge.find({ area: req.session.user.homeArea }, { _id: 0, title: 0, description: 0, area: 0 })
-      .exec()
-      .then(result => {
-        console.log(result)
-        // Check if the user hasn't completed any challenges.
-        if (!result) {
-          res.status(401).json({ message: "No completed challenges found." });
-        } else {
-          // Save the completed challenge's identifiers in an array.
-          var ids = new Array();
-          for (var i = 0; i < result.length; i++) {
-            // Cast identifiers to ObjectID
-            ids.push(ObjectID(result[i].challengeId));
-          }
-          const promises = result.map((image, i) =>
-            Entry.aggregate([
-              { $match: { challengeId: ids[i],verified: false } }
-            ]).exec()
-          );
-          Promise.all(promises).then(promise_results =>
-            res.status(200).json({ data: promise_results })
-          );
+// Finds and returns all pending challenges from the users of the area.
+exports.getPendingChallenges = function(req, res) {
+  // Find all challenges the user has completed.
+  Challenge.find(
+    { area: req.session.user.homeArea },
+    { _id: 0, area: 0 }
+  )
+    .exec()
+    .then(result => {
+      // Check if the user hasn't completed any challenges.
+      if (!result) {
+        res.status(401).json({ message: "No completed challenges found." });
+      } else {
+        // Save the completed challenge's identifiers in an array.
+        var ids = new Array();
+        for (var i = 0; i < result.length; i++) {
+          // Cast identifiers to ObjectID
+          ids.push(ObjectID(result[i].challengeId));
         }
-      });
-  }
+        const promises = result.map((info, i) =>
+          Entry.aggregate([
+            { $match: { challengeId: ids[i], verified: false } },
+            { $addFields: { info } }
+          ]).exec()
+        );
+
+        Promise.all(promises).then(promise_results =>
+          res.status(200).json({ data: promise_results })
+        );
+      }
+    });
+};
 
 // Finds and returns the completed challenges for specific user
 exports.getDoneChallenges = [
@@ -625,9 +663,9 @@ exports.getDoneChallenges = [
       });
   }
 ];
-// Finds and returns the unverified completed challenges for specific user
+// Finds and returns the unverified but completed challenges for specific user
 exports.getUnverifiedChallenges = [
-  check("userId").isLength({ min: 24 }),
+  check("id").isLength({ min: 24 }),
   function(req, res) {
     // Find all challenges the user has completed.
     Entry.find({ userId: req.params.id, verified: false }, { _id: 0 })
@@ -636,7 +674,6 @@ exports.getUnverifiedChallenges = [
       .then(result => {
         // Check if the user hasn't completed any challenges.
         if (!result) {
-     
           res.status(401).json({ message: "No unverified challenges found." });
         } else {
           // Save the completed challenge's identifiers in an array.

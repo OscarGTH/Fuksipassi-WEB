@@ -2,8 +2,8 @@ import RegisterForm from "./RegisterDialog.js";
 import CollectionForm from "./CollectionCreation.js";
 import React from "react";
 
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
+import {TextField,
+ Button, Paper} from "@material-ui/core/";
 
 // Component to display login
 class LoginForm extends React.Component {
@@ -78,6 +78,7 @@ class LoginForm extends React.Component {
   };
   render() {
     return (
+      <Paper style={{width: 200, padding: 20}}>
       <div>
         <h1> Fuksipassi </h1>
         <h3> Sign in </h3>
@@ -134,6 +135,7 @@ class LoginForm extends React.Component {
           </div>
         </div>
       </div>
+      </Paper>
     );
   }
 }

@@ -25,8 +25,14 @@ class ChallengeList extends React.Component {
     this.state = {
       barColor: this.props.color,
       user: this.props.user,
+      // Contains challenges that haven't been completed
       undoneChall: [],
+      // Contains  challenges that have been completed and verified by admin
       doneChall: [],
+      // Contains all pending challenges for the area (Admin view only)
+      pendingChall: [],
+      // Contains user specific challenges which he has completed but not yet gotten verified
+      unverifiedChall: [],
       url: "http://localhost:3000/api/",
       tabValue: 0,
       showCreatDialog: false,
@@ -40,7 +46,24 @@ class ChallengeList extends React.Component {
 
   // Fetches all challenges and sets them into state.
   getChallenges = () => {
-    fetch(this.state.url + "challenge/done/" + this.state.user.userId, {
+    if(this.state.user.role == 0){
+      fetch(this.state.url + "challenge/done/" + this.state.user.userId, {
+        method: "GET",
+        headers: {
+          "Content-type": "application/json"
+        },
+        cache: "no-cache"
+      }).then(res => {
+        res.json().then(body => {
+          // Set the current user as the user that was returned as response.
+          this.setState({
+            doneChall: body.data
+          });
+        });
+      });
+
+      // Fetch challenges that haven't been completed.
+    fetch(this.state.url + "challenge/pending/" + this.state.user.userId, {
       method: "GET",
       headers: {
         "Content-type": "application/json"
@@ -50,10 +73,30 @@ class ChallengeList extends React.Component {
       res.json().then(body => {
         // Set the current user as the user that was returned as response.
         this.setState({
-          doneChall: body.data
+          unverifiedChall: body.data
         });
       });
     });
+    } else{
+     
+      // Fetch challenges that haven't been completed.
+    fetch(this.state.url + "challenge/pending", {
+      method: "GET",
+      headers: {
+        "Content-type": "application/json"
+      },
+      cache: "no-cache"
+    }).then(res => {
+      res.json().then(body => {
+        // Set the current user as the user that was returned as response.
+        this.setState({
+          pendingChall: body.data
+        });
+      });
+    });
+    }
+    
+    
     // Fetch challenges that haven't been completed.
     fetch(this.state.url + "challenge/undone/" + this.state.user.userId, {
       method: "GET",
@@ -80,7 +123,6 @@ class ChallengeList extends React.Component {
       showCreatDialog: !this.state.showCreatDialog
     });
   };
-
 
   // Deletes the selected challenge.
   handleDeletion = challengeId => {
@@ -123,10 +165,40 @@ class ChallengeList extends React.Component {
         style={{ margin: "30px", listStyleType: "none" }}
       >
         <div>
+          <ExpandableCard challenge={challenge[0]} type="3" />
+        </div>
+      </li>
+    ));
+  }
+  // Returns the cards for challenges that are pending.
+  unverifiedContent() {
+    return this.state.unverifiedChall.map(challenge => (
+      <li
+        key={challenge[0].image.date}
+        style={{ margin: "30px", listStyleType: "none" }}
+      >
+        <div>
           <ExpandableCard challenge={challenge[0]} type="1" />
         </div>
       </li>
     ));
+  }
+   // Returns the cards for challenges that are pending.
+   pendingContent() {
+     console.log(this.state.pendingChall[0][1].challengeId)
+     if (typeof this.state.pendingChall !== "undefined" && this.state.pendingChall.length > 0 ) {
+       console.log("Meni läpi")
+    return this.state.pendingChall[0].map(challenge => (
+      <li
+        key={challenge.date}
+        style={{ margin: "30px", listStyleType: "none" }}
+      >
+        <div>
+          <ExpandableCard challenge={challenge} type="2" />
+        </div>
+      </li>
+    ));
+     }
   }
   // Returns the cards for challenges that are not done.
   undoneContent() {
@@ -160,21 +232,46 @@ class ChallengeList extends React.Component {
     const { tabValue } = this.state;
     return (
       <div>
-       
+        <AppBar
+          className={classes.appbar}
+          style={{ backgroundColor: this.state.barColor }}
+          position="static"
+        >
+          <Tabs
+            TabIndicatorProps={{
+              style: { backgroundColor: "#000", height: "3px" }
+            }}
+            centered
+            value={tabValue}
+            onChange={this.handleTabChange}
+          >
+            <Tab label="Incompleted" />
 
-        <AppBar className={classes.appbar} style={{backgroundColor: this.state.barColor}} position="static">
-          <Tabs TabIndicatorProps={{style: {backgroundColor: "#000", height: "3px"}}} centered value={tabValue} onChange={this.handleTabChange}>
-            <Tab label="Incompleted"/>
-            <Tab label="Completed" />
+            <Tab label="Pending" />
+            {this.state.user.role == 0 && <Tab label="Completed" /> }
+            
           </Tabs>
         </AppBar>
         {tabValue == 0 && this.undoneContent()}
-        {tabValue == 1 && this.doneContent()}
+        {this.state.user.role == 1 ? (
+          <div>{tabValue == 1 && this.pendingContent()}</div>
+        ) : (
+          <div>
+            {tabValue == 1 && this.unverifiedContent()}
+            {tabValue == 2 && this.doneContent()}
+          </div>
+        )}
+
         {this.state.user.role == 1 ? (
           <Fab
             color="primary"
             aria-label="Add"
-            style={{ bottom: "5%", right: "5%", position: "absolute", backgroundColor: this.state.barColor }}
+            style={{
+              bottom: "5%",
+              right: "5%",
+              position: "absolute",
+              backgroundColor: this.state.barColor
+            }}
             onClick={this.handleCreationClick}
           >
             <AddIcon />
