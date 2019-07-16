@@ -161,7 +161,7 @@ exports.login = [
   check("email").isEmail(),
   check("password").isLength({ min: 5 }),
   (req, res) => {
-    console.log("Logged in")
+    console.log("Logged in");
     // Checking for validation errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
@@ -517,29 +517,20 @@ exports.deleteEntry = [
   check("challengeId").isLength({ min: 24 }),
   check("userId").isLength({ min: 24 }),
   (req, res) => {
-    if (
-      req.session.user !== "undefined" &&
-      req.session.user.userId === req.body.userId
-    ) {
-      var entry = new Entry();
-      entry.challengeId = req.body.challengeId;
-      entry.userId = req.body.userId;
-      entry.email = req.session.user.email;
-      entry.img.data = fs.readFileSync(req.file.path);
-      entry.img.contentType = "image/jpeg";
-      entry.verified = false;
-      entry.save(function(err, data) {
-        if (err) {
-          res.status(401).json({ message: "Challenge completion failed" });
+    Entry.deleteOne({
+      userId: req.params.userId,
+      challengeId: req.params.challengeId
+    })
+      .exec()
+      .then(result => {
+        if (result.ok < 1) {
+          res.status(401).json({ message: "Challenge deletion failed" });
         } else {
           res.status(200).json({
-            message: "Challenge completed successfully!"
+            message: "Entry deleted!"
           });
         }
       });
-    } else {
-      res.status(401).json({ message: "Authorization failed" });
-    }
   }
 ];
 
@@ -600,15 +591,12 @@ exports.getUndoneChallenges = [
 // Finds and returns all pending challenges from the users of the area.
 exports.getPendingChallenges = function(req, res) {
   // Find all challenges the user has completed.
-  Challenge.find(
-    { area: req.session.user.homeArea },
-    { _id: 0, area: 0 }
-  )
+  Challenge.find({ area: req.session.user.homeArea }, { _id: 0, area: 0 })
     .exec()
     .then(result => {
       // Check if the user hasn't completed any challenges.
       if (!result) {
-        res.status(401).json({ message: "No completed challenges found." });
+        res.status(401).json({ message: "No challenges found." });
       } else {
         // Save the completed challenge's identifiers in an array.
         var ids = new Array();
@@ -622,10 +610,15 @@ exports.getPendingChallenges = function(req, res) {
             { $addFields: { info } }
           ]).exec()
         );
+       
 
-        Promise.all(promises).then(promise_results =>
-          res.status(200).json({ data: promise_results })
-        );
+        Promise.all(promises).then(promise_results => {
+          // Filter out empty rows from the array.
+        var filtered = promise_results.filter(function (el) {
+          return el != ("");
+        });
+          res.status(200).json({ data: filtered });
+        });
       }
     });
 };

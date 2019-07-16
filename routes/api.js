@@ -29,11 +29,11 @@ api.post("/login", controller.login);
 api.get("/events", controller.getEvents);
 // Route to log out.
 api.get("/logout", Auth.tokenAuth, Auth.checkLogin, controller.logout);
-// Route to get all challenges
+// Route to get incompleted challenges for specific user
 api.get("/challenge/undone/:id",controller.getUndoneChallenges);
-// Route to get all challenges
+// Route to get unverified challenges for specific user
 api.get("/challenge/pending/:id",controller.getUnverifiedChallenges);
-// Route to get all challenges
+// Route to get completed challenges for specific user
 api.get("/challenge/done/:id",controller.getDoneChallenges);
 // Route to get  verifiable challenges for admins
 api.get("/challenge/pending",Auth.checkLogin,controller.getPendingChallenges);
@@ -45,6 +45,8 @@ api.post("/challenge",controller.createChallenge);
 api.delete("/challenge/:id",controller.deleteChallenge);
 // Route to complete a challenge
 api.post("/entry",upload.single('file'),controller.completeChallenge);
+// Route to delete an entry from specific user
+api.delete("/entry/:userId/:challengeId",controller.deleteEntry)
 
 
 

@@ -30,7 +30,7 @@ class ChallengeList extends React.Component {
       // Contains  challenges that have been completed and verified by admin
       doneChall: [],
       // Contains all pending challenges for the area (Admin view only)
-      pendingChall: [],
+      pendingChall:[],
       // Contains user specific challenges which he has completed but not yet gotten verified
       unverifiedChall: [],
       url: "http://localhost:3000/api/",
@@ -46,7 +46,7 @@ class ChallengeList extends React.Component {
 
   // Fetches all challenges and sets them into state.
   getChallenges = () => {
-    if(this.state.user.role == 0){
+    if (this.state.user.role == 0) {
       fetch(this.state.url + "challenge/done/" + this.state.user.userId, {
         method: "GET",
         headers: {
@@ -63,40 +63,38 @@ class ChallengeList extends React.Component {
       });
 
       // Fetch challenges that haven't been completed.
-    fetch(this.state.url + "challenge/pending/" + this.state.user.userId, {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json"
-      },
-      cache: "no-cache"
-    }).then(res => {
-      res.json().then(body => {
-        // Set the current user as the user that was returned as response.
-        this.setState({
-          unverifiedChall: body.data
+      fetch(this.state.url + "challenge/pending/" + this.state.user.userId, {
+        method: "GET",
+        headers: {
+          "Content-type": "application/json"
+        },
+        cache: "no-cache"
+      }).then(res => {
+        res.json().then(body => {
+          // Set the current user as the user that was returned as response.
+          this.setState({
+            unverifiedChall: body.data
+          });
         });
       });
-    });
-    } else{
-     
+    } else {
       // Fetch challenges that haven't been completed.
-    fetch(this.state.url + "challenge/pending", {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json"
-      },
-      cache: "no-cache"
-    }).then(res => {
-      res.json().then(body => {
-        // Set the current user as the user that was returned as response.
-        this.setState({
-          pendingChall: body.data
+      fetch(this.state.url + "challenge/pending", {
+        method: "GET",
+        headers: {
+          "Content-type": "application/json"
+        },
+        cache: "no-cache"
+      }).then(res => {
+        res.json().then(body => {
+          // Set the current user as the user that was returned as response.
+          this.setState({
+            pendingChall: body.data
+          });
         });
       });
-    });
     }
-    
-    
+
     // Fetch challenges that haven't been completed.
     fetch(this.state.url + "challenge/undone/" + this.state.user.userId, {
       method: "GET",
@@ -127,6 +125,27 @@ class ChallengeList extends React.Component {
   // Deletes the selected challenge.
   handleDeletion = challengeId => {
     fetch(this.state.url + "challenge/" + challengeId, {
+      method: "DELETE",
+      cache: "no-cache"
+    }).then(res => {
+      if (res.ok) {
+        this.getChallenges();
+      }
+    });
+  };
+
+  handleVerification = (userId, challengeId) => {
+    fetch(this.state.url + "challenge/verify/" + userId + "/" + challengeId, {
+      method: "PATCH",
+      cache: "no-cache"
+    }).then(res => {
+      if (res.ok) {
+        this.getChallenges();
+      }
+    });
+  };
+  handleEntryDeletion = (userId, challengeId) => {
+    fetch(this.state.url + "entry/" + userId + "/" + challengeId, {
       method: "DELETE",
       cache: "no-cache"
     }).then(res => {
@@ -178,27 +197,31 @@ class ChallengeList extends React.Component {
         style={{ margin: "30px", listStyleType: "none" }}
       >
         <div>
-          <ExpandableCard challenge={challenge[0]} type="1" />
+          <ExpandableCard challenge={challenge[0]} type="1" userId={this.state.user.userId} onDelete={this.handleEntryDeletion}/>
         </div>
       </li>
     ));
   }
-   // Returns the cards for challenges that are pending.
-   pendingContent() {
-     console.log(this.state.pendingChall[0][1].challengeId)
-     if (typeof this.state.pendingChall !== "undefined" && this.state.pendingChall.length > 0 ) {
-       console.log("Meni läpi")
-    return this.state.pendingChall[0].map(challenge => (
-      <li
-        key={challenge.date}
-        style={{ margin: "30px", listStyleType: "none" }}
-      >
-        <div>
-          <ExpandableCard challenge={challenge} type="2" />
-        </div>
-      </li>
-    ));
-     }
+  // Returns the cards for challenges that are pending.
+  pendingContent() {
+    console.log(this.state.pendingChall[0])
+    if (
+      typeof this.state.pendingChall !== "undefined" &&
+      this.state.pendingChall.length > 0
+    ) {
+      console.log("Meni läpi");
+
+      return this.state.pendingChall.map(challenge => (
+        <li
+          key={challenge.date}
+          style={{ margin: "30px", listStyleType: "none" }}
+        >
+          <div>
+            <ExpandableCard challenge={challenge[0]} onDelete={this.handleEntryDeletion} onVerify={this.handleVerification} type="2" />
+          </div>
+        </li>
+      ));
+    }
   }
   // Returns the cards for challenges that are not done.
   undoneContent() {
@@ -248,8 +271,7 @@ class ChallengeList extends React.Component {
             <Tab label="Incompleted" />
 
             <Tab label="Pending" />
-            {this.state.user.role == 0 && <Tab label="Completed" /> }
-            
+            {this.state.user.role == 0 && <Tab label="Completed" />}
           </Tabs>
         </AppBar>
         {tabValue == 0 && this.undoneContent()}

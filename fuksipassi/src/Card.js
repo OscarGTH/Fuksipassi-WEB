@@ -163,7 +163,12 @@ class ExpandableCard extends React.Component {
           <Button
             size="small"
             color="primary"
-            onClick={this.handleUnverifiedDelete}
+            onClick={() =>
+              this.props.onDelete(
+                this.props.userId,
+                this.state.challenge.challengeId
+              )
+            }
           >
             Delete
           </Button>
@@ -186,7 +191,7 @@ class ExpandableCard extends React.Component {
     );
   };
   pendingCard = () => {
-    console.log("Lol oon pendingisss!")
+    console.log("PENDINGIS");
     const { classes } = this.props;
     return (
       <Card className={classes.card}>
@@ -209,8 +214,14 @@ class ExpandableCard extends React.Component {
           </IconButton>
           <Button
             size="small"
-            color="primary"
-            onClick={this.handlePendingDelete}
+            color="secondary"
+            variant="contained"
+            onClick={() =>
+              this.props.onDelete(
+                this.state.challenge.userId,
+                this.state.challenge.challengeId
+              )
+            }
           >
             Delete
           </Button>
@@ -218,7 +229,13 @@ class ExpandableCard extends React.Component {
           <Button
             size="small"
             color="primary"
-            onClick={this.handleVerifyDialog}
+            variant="contained"
+            onClick={() =>
+              this.props.onVerify(
+                this.state.challenge.userId,
+                this.state.challenge.challengeId
+              )
+            }
           >
             Verify
           </Button>
@@ -230,9 +247,7 @@ class ExpandableCard extends React.Component {
             </Typography>
             <img
               className={classes.media}
-              src={`data:image/jpeg;base64,${
-                this.state.challenge.img.data
-              }`}
+              src={`data:image/jpeg;base64,${this.state.challenge.img.data}`}
               alt="Proof of completion"
             />
           </CardContent>
