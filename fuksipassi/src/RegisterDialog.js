@@ -1,5 +1,7 @@
 import React from "react";
 import  {Dialog, DialogActions, DialogContent,DialogTitle,TextField,Button} from "@material-ui/core"
+import DownIcon from "@material-ui/icons/ThumbDown";
+import UpIcon from "@material-ui/icons/ThumbUp";
 
 // Component that handles registering.
 class RegisterForm extends React.Component {
@@ -8,7 +10,11 @@ class RegisterForm extends React.Component {
       this.state = {
         email: "",
         password: "",
-        area: ""
+        area: "",
+        checked: false,
+        areaFound: false,
+        areaPassNeeded: false,
+        areaPass: ""
       };
     }
 
@@ -32,6 +38,9 @@ class RegisterForm extends React.Component {
         password: this.state.password,
         area: this.state.area
       };
+      if(this.state.areaPassNeeded){
+        user.areaPass = this.state.areaPass
+      }
       // Send ajax call to server with username and password.
       fetch("http://localhost:3000/api/user", {
         credentials: "same-origin",
@@ -46,6 +55,33 @@ class RegisterForm extends React.Component {
           this.props.onClose(body.message);
         });
     };
+    
+    // Checks if area exists and if it needs password for registering into it.
+    checkArea = () =>{
+      fetch("http://localhost:3000/api/area/"+this.state.area, {
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        method: "GET"
+      })
+        .then(res => res.json())
+        .then(body => {
+          // If area was found, set state accordingly.
+          if(body.message == "Area found"){
+            this.setState({
+              areaFound: true,
+              checked: true,
+              areaPassNeeded: body.password
+            })
+          } else{
+            this.setState({
+              areaFound: false,
+              checked: true
+            })
+          }
+        });
+    }
    
 
     render() {
@@ -70,7 +106,12 @@ class RegisterForm extends React.Component {
                 label="Area name"
                 onChange={this.handleChange("area")}
               />
-            </div>
+              <Button onClick={this.checkArea}>Check</Button>
+              {!this.state.areaFound && this.state.checked && <DownIcon color="error"></DownIcon>}
+              {this.state.areaFound && <UpIcon color="primary"></UpIcon>}</div>
+              
+           
+            {this.state.areaPassNeeded && <TextField value={this.state.areaPass} onChange={this.handleChange("areaPass")} label="Area password"/>}
           </DialogContent>
 
           <DialogActions>
@@ -85,6 +126,7 @@ class RegisterForm extends React.Component {
               onClick={this.handleRegister}
               variant="contained"
               color="primary"
+              disabled={!this.state.checked}
             >
               Register
             </Button>

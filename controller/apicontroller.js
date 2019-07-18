@@ -89,7 +89,6 @@ exports.updateUser = [
                 var password = "bing";
                 // If the password hasn't remained the same, change it.
                 if (typeof req.body.password !== "undefined") {
-                  console.log("");
                   if (req.body.password !== result.password) {
                     passwordEdited = true;
                     password = req.body.password;
@@ -161,7 +160,6 @@ exports.login = [
   check("email").isEmail(),
   check("password").isLength({ min: 5 }),
   (req, res) => {
-    console.log("Logged in");
     // Checking for validation errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
@@ -241,42 +239,63 @@ exports.addUser = [
           if (typeof coll[0] === "undefined") {
             res.status(400).json({ message: "Invalid area name." });
             return true;
-          }
-          // First off, make sure the email is not duplicate.
-          User.find({ email: req.body.email })
-            .exec()
-            .then(result => {
-              // If there were result when searching with the email, return with a error message.
-              if (result[0]) {
-                res.status(400).json({ message: "Email already in use" });
-              } else {
-                // Create a new user.
-                var user = new User();
+          } else {
+            // If password was sent with the request, compare it with the area password.
+            if (typeof req.body.areaPass !== "undefined") {
+              bcrypt.compare(
+                req.body.areaPass,
+                coll[0].password,
+                (err, result) => {
+                  if (err) {
+                    return res
+                      .status(401)
+                      .json({ message: "Authorization failed" });
+                  }
+                }
+              );
+            }
 
-                // Hashing password.
-                bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-                  // Setting the user data.
-                  (user.email = req.body.email),
-                    (user.password = hash),
-                    (user.homeArea = req.body.area),
-                    (user.role = 0);
+            // First off, make sure the email is not duplicate.
+            User.find({ email: req.body.email })
+              .exec()
+              .then(result => {
+                // If there were result when searching with the email, return with a error message.
+                if (result[0]) {
+                  res.status(400).json({ message: "Email already in use" });
+                } else {
+                  // Create a new user.
+                  var user = new User();
 
-                  user.userId = ObjectID();
-                  // Save user into database.
-                  user.save(function(err) {
-                    if (err) {
-                      console.log("error when saving!");
-                      res.status(401).json({ message: "Authorization failed" });
-                    } else {
-                      // Send status with a message and the users email.
-                      res.status(200).json({
-                        message: "Account created"
-                      });
-                    }
+                  // Hashing password.
+                  bcrypt.hash(req.body.password, saltRounds, function(
+                    err,
+                    hash
+                  ) {
+                    // Setting the user data.
+                    (user.email = req.body.email),
+                      (user.password = hash),
+                      (user.homeArea = req.body.area),
+                      (user.role = 0);
+
+                    user.userId = ObjectID();
+                    // Save user into database.
+                    user.save(function(err) {
+                      if (err) {
+                        console.log("error when saving!");
+                        res
+                          .status(401)
+                          .json({ message: "Authorization failed" });
+                      } else {
+                        // Send status with a message and the users email.
+                        res.status(200).json({
+                          message: "Account created"
+                        });
+                      }
+                    });
                   });
-                });
-              }
-            });
+                }
+              });
+          }
         });
     } else {
       // Validation failed.
@@ -399,6 +418,7 @@ exports.logout = function(req, res) {
 
 // Deletes the selected user.
 exports.deleteUser = function(req, res) {
+  console.log(req.params.id);
   // Checks that the user is either admin or basic user who is deleting themselves.
   if (req.session.user.role == 1 || req.session.user.userId == req.params.id) {
     User.deleteOne({ userId: req.params.id })
@@ -407,17 +427,10 @@ exports.deleteUser = function(req, res) {
         // Check if there are deleted users.
         if (result.deletedCount < 1) {
           res.status(401).json({ message: "Deletion failed" });
-        } else if (result.deletedCount > 0) {
-          Entry.deleteOne({ userId: req.params.id })
-            .exec()
-            .then(result => {
-              if (result.deletedCount < 1) {
-                res.status(401).json({ message: "Deletion failed" });
-              } else if (result.deletedCount > 0) {
-                // Return status code with a message if deletion succeeded.
-                res.status(200).json({ message: "Deletion successful" });
-              }
-            });
+        } else {
+          Entry.deleteMany({ userId: req.params.id }).exec();
+          // Return status code with a message if deletion succeeded.
+          res.status(200).json({ message: "Deletion successful" });
         }
       });
   } else {
@@ -610,13 +623,12 @@ exports.getPendingChallenges = function(req, res) {
             { $addFields: { info } }
           ]).exec()
         );
-       
 
         Promise.all(promises).then(promise_results => {
           // Filter out empty rows from the array.
-        var filtered = promise_results.filter(function (el) {
-          return el != ("");
-        });
+          var filtered = promise_results.filter(function(el) {
+            return el != "";
+          });
           res.status(200).json({ data: filtered });
         });
       }
@@ -684,6 +696,33 @@ exports.getUnverifiedChallenges = [
           Promise.all(promises).then(promise_results =>
             res.status(200).json({ data: promise_results })
           );
+        }
+      });
+  }
+];
+// Checks the given area in case it exists and then if it is password protected.
+exports.checkArea = [
+  check("area").isString(),
+  check("area").isLength({ min: 1 }),
+  function(req, res) {
+    Area.find({ name: req.params.area })
+      .exec()
+      .then(area => {
+        if (typeof area[0] === "undefined") {
+          res.status(404).json({ message: "Area not found" });
+        } else {
+          Area.find({ name: req.params.area, password: { $exists: true } })
+            .exec()
+            .then(result => {
+              // If the area is not found when searching for password protection, then it is not protected.
+              if (typeof result[0] === "undefined") {
+                res
+                  .status(200)
+                  .json({ message: "Area found", password: false });
+              } else {
+                res.status(200).json({ message: "Area found", password: true });
+              }
+            });
         }
       });
   }

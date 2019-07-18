@@ -1,29 +1,25 @@
 import React from "react";
 import ExpandableCard from "./Card.js";
-import LogoutIcon from "@material-ui/icons/Input";
-import UndoIcon from "@material-ui/icons/Undo";
-import RedoIcon from "@material-ui/icons/Redo";
-import AccountCircleIcon from "@material-ui/icons/AccountCircle";
-import IconButton from "@material-ui/core/IconButton";
 import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Fab from "@material-ui/core/Fab";
 import AddIcon from "@material-ui/icons/Add";
-import { Typography } from "@material-ui/core";
 import CreationDialog from "./ChallengeCreationDialog.js";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 const styles = theme => ({
   appbar: {
-    color: "#000000"
+    color: "#ffffff"
   }
 });
 class ChallengeList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      // Color of the tabs and fab
       barColor: this.props.color,
+      // Current user
       user: this.props.user,
       // Contains challenges that haven't been completed
       undoneChall: [],
@@ -36,12 +32,26 @@ class ChallengeList extends React.Component {
       url: "http://localhost:3000/api/",
       tabValue: 0,
       showCreatDialog: false,
-      message: ""
+      message: "",
+      mounted: false
     };
   }
+  componentDidUpdate(prevProps) {
+    if(prevProps.color !== this.props.color) {
+      this.setState({barColor: this.props.color});
+    }
+  }
+  componentWillUnmount(){
+    this.setState({
+      mounted: false
+    })
+  }
 
-  async componentDidMount() {
-    await this.getChallenges();
+   componentDidMount() {
+     this.setState({
+       mounted: true
+     })
+     this.getChallenges();
   }
 
   // Fetches all challenges and sets them into state.
@@ -55,10 +65,13 @@ class ChallengeList extends React.Component {
         cache: "no-cache"
       }).then(res => {
         res.json().then(body => {
+          if(this.state.mounted){
+            this.setState({
+              doneChall: body.data
+            });
+          }
           // Set the current user as the user that was returned as response.
-          this.setState({
-            doneChall: body.data
-          });
+          
         });
       });
 
@@ -71,10 +84,12 @@ class ChallengeList extends React.Component {
         cache: "no-cache"
       }).then(res => {
         res.json().then(body => {
+          if(this.state.mounted){
           // Set the current user as the user that was returned as response.
           this.setState({
             unverifiedChall: body.data
           });
+        }
         });
       });
     } else {
@@ -87,10 +102,12 @@ class ChallengeList extends React.Component {
         cache: "no-cache"
       }).then(res => {
         res.json().then(body => {
+          if(this.state.mounted){
           // Set the current user as the user that was returned as response.
           this.setState({
             pendingChall: body.data
           });
+        }
         });
       });
     }
@@ -183,7 +200,7 @@ class ChallengeList extends React.Component {
         key={challenge[0].image.date}
         style={{ margin: "30px", listStyleType: "none" }}
       >
-        <div>
+        <div style={{ display:' flex', justifyContent:'center'  }}>
           <ExpandableCard challenge={challenge[0]} type="3" />
         </div>
       </li>
@@ -196,7 +213,7 @@ class ChallengeList extends React.Component {
         key={challenge[0].image.date}
         style={{ margin: "30px", listStyleType: "none" }}
       >
-        <div>
+        <div style={{ display:' flex', justifyContent:'center'  }}>
           <ExpandableCard challenge={challenge[0]} type="1" userId={this.state.user.userId} onDelete={this.handleEntryDeletion}/>
         </div>
       </li>
@@ -204,19 +221,17 @@ class ChallengeList extends React.Component {
   }
   // Returns the cards for challenges that are pending.
   pendingContent() {
-    console.log(this.state.pendingChall[0])
     if (
       typeof this.state.pendingChall !== "undefined" &&
       this.state.pendingChall.length > 0
     ) {
-      console.log("Meni läpi");
 
       return this.state.pendingChall.map(challenge => (
         <li
-          key={challenge.date}
+          key={challenge._id}
           style={{ margin: "30px", listStyleType: "none" }}
         >
-          <div>
+          <div style={{ display:' flex', justifyContent:'center'  }}>
             <ExpandableCard challenge={challenge[0]} onDelete={this.handleEntryDeletion} onVerify={this.handleVerification} type="2" />
           </div>
         </li>
@@ -227,11 +242,12 @@ class ChallengeList extends React.Component {
   undoneContent() {
     if (typeof this.state.undoneChall !== "undefined") {
       return this.state.undoneChall.map(challenge => (
+        
         <li
           key={challenge.challengeId}
           style={{ margin: "30px", listStyleType: "none" }}
         >
-          <div>
+          <div style={{ display:' flex', justifyContent:'center'  }}>
             <ExpandableCard
               challenge={challenge}
               type="0"

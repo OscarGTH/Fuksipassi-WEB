@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
+
 import classnames from "classnames";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
@@ -13,19 +14,21 @@ import IconButton from "@material-ui/core/IconButton";
 import Button from "@material-ui/core/Button";
 import CompletionDialog from "./CardCompletionDialog.js";
 import DeletionDialog from "./CardDeletionDialog.js";
+import { CardMedia } from "@material-ui/core";
 const styles = theme => ({
   card: {
+    backgroundColor: '#FFFF88',
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    maxWidth: 400
+    minWidth: 350,
+    maxWidth: 500
   },
   media: {
-    maxHeight: 250,
-    paddingTop: "20%",
-    display: "block",
-    marginLeft: "auto",
-    marginRight: "auto"
+    height: "55px",
+    maxWidth: "57px",
+    position: "relative", top: "15px",right: "10px",
+    display: "block"
   },
   actions: {
     display: "flex"
@@ -50,10 +53,16 @@ class ExpandableCard extends React.Component {
       expanded: false,
       showCompDialog: false,
       showDelDialog: false,
-      admin: this.props.admin
+      admin: this.props.admin,
+      timeout: null
     };
   }
-
+  // Stopping the timeout when unmounting.
+  componentWillUnmount(){
+    if(this.state.timeout != null){
+      clearTimeout(this.state.timeout)
+    }
+  }
   handleCompletion = file => {
     this.handleDialog();
     this.props.onCompletion(this.state.challenge.challengeId, file);
@@ -82,12 +91,14 @@ class ExpandableCard extends React.Component {
   // Closes the card after 5 seconds.
   delayClosing = () => {
     if (this.state.expanded !== true) {
-      setTimeout(
+      var timeout = setTimeout(
         function() {
           this.setState({ expanded: false });
         }.bind(this),
         3000
       );
+      this.setState({timeout: timeout})
+      
     }
   };
 
@@ -101,9 +112,11 @@ class ExpandableCard extends React.Component {
     const { classes } = this.props;
     return (
       <Card className={classes.card}>
-        <CardHeader> Card </CardHeader>
+        <CardMedia
+          title="Thumbtack">
+          <img className={classes.media} src={process.env.PUBLIC_URL + "/tack.png"}></img></CardMedia>
         <CardContent>
-          <Typography>{this.state.challenge.title}</Typography>
+          <Typography gutterBottom variant="h6" component="h2">{this.state.challenge.title}</Typography>
         </CardContent>
         <CardActions className={classes.actions}>
           <IconButton

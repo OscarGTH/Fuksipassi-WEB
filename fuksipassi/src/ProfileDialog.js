@@ -85,7 +85,7 @@ class ProfileDialog extends React.Component {
       res.json().then(body => {
         // If deletion is succesfull, log out the current user.
         if (res.status == 200) {
-          this.props.onDelete();
+          this.props.onDelete(this.state.user.userId);
         } else {
           // If deletion failed, show error message.
           alert(body.message);

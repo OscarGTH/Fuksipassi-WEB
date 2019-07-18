@@ -29,7 +29,13 @@ class App extends React.Component {
       // JSON web token
       token: "",
       // Color theme of the app bar
-      barColor: "#7CB9E8",
+      barColor: "#50E3C2",
+      // Previous color theme
+      previousColor: "",
+      //Boolean to toggle redo button
+      redo: false,
+       //Boolean to toggle undo button
+      undo: false,
       // Toggle boolean for editing profile.
       editProfile: false,
       // Toggle boolean for viewing settings view.
@@ -136,11 +142,31 @@ class App extends React.Component {
       showUsers: !this.state.showUsers
     });
   };
+  // Handles the undo button press
+  handleUndo = () =>{
+      this.setState({
+        previousColor: this.state.barColor,
+        barColor: this.state.previousColor,
+        undo: false,
+        redo: true
+      })
+  }
+  // Handles the redo button press
+  handleRedo = () => {
+    this.setState({
+      previousColor: this.state.barColor,
+      barColor: this.state.previousColor,
+      redo: false,
+      undo: true
+    })
+  }
   // Handles the theme color changing from settings view
   handleColorChange = hex => {
     // Save color into local storage, so it doesn't get lost when refreshing page.
     localStorage.setItem("color", hex);
     this.setState({
+      undo: true,
+      previousColor: this.state.barColor,
       barColor: hex
     })
     this.handleSettings();
@@ -155,10 +181,14 @@ class App extends React.Component {
               {this.state.showSettings || this.state.showUsers ? (
                 <div>
                   {this.state.showSettings && (
+                      <div style={{ display:' flex', justifyContent:'center'  }}>
                     <Settings onClose={this.handleSettings} onSave={this.handleColorChange}/>
+                    </div>
                   )}
                   {this.state.showUsers && (
+                      <div style={{ display:' flex', justifyContent:'center'  }}>
                     <UserList onClose={this.handleUserList} token={this.state.token} user={this.state.user} />
+                    </div>
                   )}
                 </div>
               ) : (
@@ -168,7 +198,7 @@ class App extends React.Component {
                       onClick={this.handleDrawerToggle}
                       width={300}
                       open={this.state.openDrawer}
-                      docked={false}
+                      
                     >
                       <MenuItem onClick={this.handleSettings}>
                         Settings
@@ -195,12 +225,13 @@ class App extends React.Component {
                       <IconButton onClick={this.handleProfile}>
                         <AccountCircleIcon />
                       </IconButton>
-                      <IconButton>
-                        <RedoIcon />
-                      </IconButton>
-                      <IconButton>
+                      <IconButton disabled={!this.state.undo} onClick={this.handleUndo}>
                         <UndoIcon />
                       </IconButton>
+                      <IconButton disabled={!this.state.redo} onClick={this.handleRedo}>
+                        <RedoIcon />
+                      </IconButton>
+                      
                     </div>
                   </ToolBar>
                   <ChallengeList
@@ -210,6 +241,8 @@ class App extends React.Component {
                     color={this.state.barColor}
                   />
                   {this.state.editProfile && (
+                   
+
                     <ProfileDialog
                       targetUser={this.state.user}
                       currentUser={this.state.user}
@@ -218,6 +251,7 @@ class App extends React.Component {
                       onDelete={this.handleLogout}
                       onEdit={this.handleEdit}
                     />
+                    
                   )}
                 </div>
               )}

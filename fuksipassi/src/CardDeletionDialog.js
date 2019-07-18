@@ -29,25 +29,26 @@ class DeletionDialog extends React.Component {
       <Dialog open={true}>
         <DialogTitle> Delete a challenge </DialogTitle>
         <DialogContent>
-            <Typography>{this.state.title}</Typography>
+            <Typography><i>{this.state.title}</i></Typography>
             Are you sure you want to delete this challenge? All information about the completions of this challenge will also be deleted.
         </DialogContent>
 
         <DialogActions>
-          <Button
-            onClick={this.handleDeletion}
-            variant="outlined"
-            color="primary"
-          >
-              I'm sure
-          </Button>
-          <Button
+        <Button
             onClick={this.props.onCancel}
-            variant="outlined"
+            variant="contained"
             color="primary"
           >
             Cancel
           </Button>
+          <Button
+            onClick={this.handleDeletion}
+            variant="contained"
+            color="secondary"
+          >
+              Delete
+          </Button>
+         
         </DialogActions>
       </Dialog>
     );

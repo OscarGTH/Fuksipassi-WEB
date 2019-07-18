@@ -47,6 +47,8 @@ api.delete("/challenge/:id",controller.deleteChallenge);
 api.post("/entry",upload.single('file'),controller.completeChallenge);
 // Route to delete an entry from specific user
 api.delete("/entry/:userId/:challengeId",controller.deleteEntry)
+// Route to check if area exists and if it is password protected.
+api.get("/area/:area", controller.checkArea);
 
 
 

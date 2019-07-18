@@ -20,15 +20,15 @@ class Settings extends React.Component {
 
   render() {
     return (
-      <Paper>
+      <Paper style={{maxWidth: "500px"}}>
         <div>
           <Typography>Theme color</Typography>
           <SketchPicker
             color={this.state.barColor}
             onChangeComplete={this.handleChangeComplete}
           />
-          <Button onClick={this.props.onClose} variant="contained" color="secondary"> Go back </Button>
-          <Button onClick={this.handleSaving}variant="contained" color="primary"> Save </Button>
+          <Button onClick={this.props.onClose} variant="contained" color="secondary" style={{margin: "10px"}}> Go back </Button>
+          <Button onClick={this.handleSaving}variant="contained" color="primary" style={{margin: "10px"}}> Save </Button>
         </div>
       </Paper>
     );

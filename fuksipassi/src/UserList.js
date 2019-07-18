@@ -46,6 +46,23 @@ class UserList extends React.Component {
       showEdit: false
     });
   };
+  // Handles the user deleting
+  handleUserDelete = id => {
+    // Copy the user array
+    let remainingUsers = this.state.users;
+    // Loop through it
+    for (var i = 0; i < remainingUsers.length; i++) {
+      // When correct id is found, remove the user from the array
+      if (remainingUsers[i].userId == id) {
+        remainingUsers.splice(i, 1);
+        // Update state.
+        this.setState({
+          users: remainingUsers,
+          showEdit: false
+        });
+      }
+    }
+  };
   render() {
     return (
       <Paper>
@@ -55,7 +72,7 @@ class UserList extends React.Component {
             currentUser={this.props.user}
             token={this.state.token}
             onClose={this.closeEditDialog}
-            onDelete={this.closeEditDialog}
+            onDelete={this.handleUserDelete}
             onEdit={this.closeEditDialog}
           />
         )}
@@ -65,6 +82,7 @@ class UserList extends React.Component {
             Number of users: <b>{this.state.users.length}</b>
           </Typography>
           <table>
+          <tbody>
             <tr>
               <th>Username</th>
               <th>Role</th>
@@ -72,23 +90,29 @@ class UserList extends React.Component {
             </tr>
 
             {this.state.users.map(user => (
-              <tr>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                  {user.email}
-                </td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                  {user.role ? <p>Admin</p> : <p>Basic</p>}
-                </td>
-                <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                  <Button onClick={() => this.openEditDialog(user)}> Edit </Button>
-                </td>
-              </tr>
+              
+                <tr key={user.userId}>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    {user.email}
+                  </td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    {user.role ? <p>Admin</p> : <p>Basic</p>}
+                  </td>
+                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    <Button onClick={() => this.openEditDialog(user)}>
+                      Edit
+                    </Button>
+                  </td>
+                </tr>
+             
             ))}
+             </tbody>
           </table>
           <Button
             onClick={this.props.onClose}
             variant="contained"
             color="secondary"
+            style={{ margin: "10px" }}
           >
             Go back
           </Button>
