@@ -29,7 +29,7 @@ class App extends React.Component {
       // JSON web token
       token: "",
       // Color theme of the app bar
-      barColor: "#50E3C2",
+      barColor: "#FFBB4C",
       // Previous color theme
       previousColor: "",
       //Boolean to toggle redo button
@@ -49,7 +49,7 @@ class App extends React.Component {
     this.handleLogout = this.handleLogout.bind(this);
   }
   componentDidMount() {
-
+    window.addEventListener("keydown",this.handleHotkey)
     if(localStorage.getItem("color") !== null){
       this.setState({
         barColor: localStorage.getItem("color")
@@ -71,6 +71,20 @@ class App extends React.Component {
       }
     }
   
+  }
+  componentWillUnmount(){
+    window.removeEventListener("keydown",this.handleHotkey)
+  }
+  
+  // Handles the hotkey presses
+  handleHotkey = (e) =>{
+   if(e.keyCode == 36){
+     this.handleProfile()
+   } else if(e.keyCode == 35){
+     this.handleSettings()
+   }else if(e.keyCode == 46 && this.state.user.role == 1){
+     this.handleUserList()
+   }
   }
 
   // Method that is called after login. Sets token and other important information to state.

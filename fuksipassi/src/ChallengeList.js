@@ -42,16 +42,36 @@ class ChallengeList extends React.Component {
     }
   }
   componentWillUnmount(){
+    window.removeEventListener("keydown",this.handleHotkey)
     this.setState({
       mounted: false
     })
   }
 
    componentDidMount() {
+     window.addEventListener("keydown",this.handleHotkey)
      this.setState({
        mounted: true
      })
      this.getChallenges();
+  }
+
+  handleHotkey = (e) =>{
+    // If left arrow key is pressed, decrease tab value by one.
+    if(e.keyCode == 37){
+      var tabVal = this.state.tabValue
+      if(tabVal > 0 ){
+        tabVal--;
+      }
+      this.setState({tabValue: tabVal})
+      //If right arrow key is pressed, increase tab value by one.
+    } else if(e.keyCode == 39){
+      var tabVal = this.state.tabValue
+      if(tabVal < 2 &&  this.state.user.role == 0 || tabVal < 1 && this.state.user.role){
+        tabVal++;
+      }
+      this.setState({tabValue: tabVal})
+    }
   }
 
   // Fetches all challenges and sets them into state.
@@ -70,8 +90,6 @@ class ChallengeList extends React.Component {
               doneChall: body.data
             });
           }
-          // Set the current user as the user that was returned as response.
-          
         });
       });
 
@@ -85,7 +103,6 @@ class ChallengeList extends React.Component {
       }).then(res => {
         res.json().then(body => {
           if(this.state.mounted){
-          // Set the current user as the user that was returned as response.
           this.setState({
             unverifiedChall: body.data
           });
@@ -103,7 +120,6 @@ class ChallengeList extends React.Component {
       }).then(res => {
         res.json().then(body => {
           if(this.state.mounted){
-          // Set the current user as the user that was returned as response.
           this.setState({
             pendingChall: body.data
           });
@@ -121,10 +137,11 @@ class ChallengeList extends React.Component {
       cache: "no-cache"
     }).then(res => {
       res.json().then(body => {
-        // Set the current user as the user that was returned as response.
-        this.setState({
-          undoneChall: body.data
-        });
+        if(this.state.mounted){
+          this.setState({
+            undoneChall: body.data
+          });
+        }
       });
     });
     return true;

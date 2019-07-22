@@ -3,7 +3,7 @@ import CollectionForm from "./CollectionCreation.js";
 import React from "react";
 
 import {TextField,
- Button, Paper} from "@material-ui/core/";
+ Button, Paper, Typography} from "@material-ui/core/";
 
 // Component to display login
 class LoginForm extends React.Component {
@@ -17,6 +17,20 @@ class LoginForm extends React.Component {
       message: ""
     };
     this.handleRegister = this.handleRegister.bind(this);
+  }
+  componentDidMount(){
+    // Add event listener to listen for enter key presses.
+    window.addEventListener("keydown", this.handleKeypress)
+  }
+  componentWillUnmount(){
+    // Removing event listener when unmounting.
+    window.removeEventListener("keydown",this.handleKeypress)
+  }
+  // Handles Enter key press and logs the user in.
+  handleKeypress = (e) =>{
+    if(e.keyCode == 13 && this.state.email != "" && this.state.password != ""){
+      this.login()
+    }
   }
   // Calls parent component method to when the user has logged in.
   auth = (user, token) => {
@@ -78,14 +92,15 @@ class LoginForm extends React.Component {
   };
   render() {
     return (
-      <Paper style={{width: 200, padding: 20}}>
+      <Paper style={{width: 350, padding: 20}}>
       <div>
         <h1> Fuksipassi </h1>
         <h3> Sign in </h3>
-        <div>{this.state.message}</div>
+        <Typography>{this.state.message}</Typography>
         <div>
           <TextField
             label="Email"
+            style={{width: 300}}
             type="email"
             autoComplete="email"
             variant="outlined"
@@ -96,6 +111,7 @@ class LoginForm extends React.Component {
         </div>
         <TextField
           label="Password"
+          style={{width: 300, justifyContent: "center"}}
           type="password"
           margin="normal"
           variant="outlined"

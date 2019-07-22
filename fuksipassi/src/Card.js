@@ -25,6 +25,14 @@ const styles = theme => ({
     maxWidth: 500
   },
   media: {
+    maxHeight: 250,
+    maxWidth: 500,
+   paddingTop: "5%",
+    marginLeft: "auto",
+    marginRight: "auto",
+    display: "block"
+  },
+  thumbtack: {
     height: "55px",
     maxWidth: "57px",
     position: "relative", top: "15px",right: "10px",
@@ -114,7 +122,7 @@ class ExpandableCard extends React.Component {
       <Card className={classes.card}>
         <CardMedia
           title="Thumbtack">
-          <img className={classes.media} src={process.env.PUBLIC_URL + "/tack.png"}></img></CardMedia>
+          <img className={classes.thumbtack} src={process.env.PUBLIC_URL + "/tack.png"}></img></CardMedia>
         <CardContent>
           <Typography gutterBottom variant="h6" component="h2">{this.state.challenge.title}</Typography>
         </CardContent>
@@ -159,9 +167,11 @@ class ExpandableCard extends React.Component {
     const { classes } = this.props;
     return (
       <Card className={classes.card}>
-        <CardHeader> Card </CardHeader>
+        <CardMedia
+          title="Thumbtack">
+          <img className={classes.thumbtack} src={process.env.PUBLIC_URL + "/tack.png"}></img></CardMedia>
         <CardContent>
-          <Typography>{this.state.challenge.title}</Typography>
+        <Typography gutterBottom variant="h6" component="h2">{this.state.challenge.title}</Typography>
         </CardContent>
         <CardActions className={classes.actions}>
           <IconButton
@@ -204,13 +214,14 @@ class ExpandableCard extends React.Component {
     );
   };
   pendingCard = () => {
-    console.log("PENDINGIS");
     const { classes } = this.props;
     return (
       <Card className={classes.card}>
-        <CardHeader> Card </CardHeader>
+       <CardMedia
+          title="Thumbtack">
+          <img className={classes.thumbtack} src={process.env.PUBLIC_URL + "/tack.png"}></img></CardMedia>
         <CardContent>
-          <Typography>{this.state.challenge.info.title}</Typography>
+        <Typography gutterBottom variant="h6" component="h2">{this.state.challenge.info.title}</Typography>
           <Typography>
             <b>User:</b> {this.state.challenge.email}
           </Typography>
@@ -273,9 +284,11 @@ class ExpandableCard extends React.Component {
     const { classes } = this.props;
     return (
       <Card className={classes.card}>
-        <CardHeader> Card </CardHeader>
+      <CardMedia
+          title="Thumbtack">
+          <img className={classes.thumbtack} src={process.env.PUBLIC_URL + "/tack.png"}></img></CardMedia>
         <CardContent>
-          <Typography>{this.state.challenge.title}</Typography>
+        <Typography gutterBottom variant="h6" component="h2">{this.state.challenge.title}</Typography>
           <Typography>
             <b>Date of completion:</b> {this.state.challenge.image.date}
           </Typography>
@@ -301,6 +314,7 @@ class ExpandableCard extends React.Component {
               }`}
               alt="Proof of completion"
             />
+           
           </CardContent>
         </Collapse>
       </Card>
