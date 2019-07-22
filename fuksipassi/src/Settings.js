@@ -10,6 +10,20 @@ class Settings extends React.Component {
     };
   }
 
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.handleHotkey);
+  }
+  componentDidMount() {
+    window.addEventListener("keydown", this.handleHotkey);
+  }
+  
+   // Handles the key press
+   handleHotkey = (e) =>{
+    // If ESC is pressed, close settings view.
+    if(e.KeyCode == 27){
+      this.props.onClose();
+    }
+  }
   handleChangeComplete = color => {
     this.setState({ barColor: color.hex });
   };

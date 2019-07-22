@@ -33,14 +33,32 @@ class CreationDialog extends React.Component {
     };
   }
 
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.handleHotkey);
+  }
+  componentDidMount() {
+    window.addEventListener("keydown", this.handleHotkey);
+  }
+
+  // Handles the key press
+  handleHotkey = e => {
+    // If ESC is pressed, close settings view.
+    if (e.keyCode == 27) {
+      this.props.onClose();
+    } else if (e.keyCode == 13) {
+      // If the information for challenge has been set, allow to continue.
+      if (this.state.title.length > 0 && this.state.description.length > 0) {
+        this.handleCreation();
+      }
+    }
+  };
+
   // Handle text field changes
   handleChange = name => event => {
     this.setState({
       [name]: event.target.value
     });
   };
-
- 
 
   // Close the popup window
   handleCancel = () => {
@@ -49,32 +67,32 @@ class CreationDialog extends React.Component {
 
   // Called when challenge information has been given by the user and the challenge needs to be saved into database.
   handleCreation = () => {
-      var challenge = {
-          title: this.state.title,
-          description: this.state.description
-      }
-       console.log(challenge)
+    var challenge = {
+      title: this.state.title,
+      description: this.state.description
+    };
+    console.log(challenge);
     fetch("http://localhost:3000/api/" + "challenge", {
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      method: "POST",
       body: JSON.stringify(challenge)
     }).then(res => {
       if (res.ok) {
-          console.log("Is ok")
+        console.log("Is ok");
         this.props.onClose();
-      } else{
-          res.json(body=>{
-              this.setState({
-                  message: body.message
-              })
-          })
+      } else {
+        res.json(body => {
+          this.setState({
+            message: body.message
+          });
+        });
       }
     });
-  }
-  
+  };
+
   render() {
     const { classes } = this.props;
     return (
@@ -82,7 +100,8 @@ class CreationDialog extends React.Component {
         <DialogTitle> Challenge creation </DialogTitle>
         <DialogContent>
           <div>
-            Create a new challenge for users to complete. This challenge is only going to be seen by members in your challenge area.
+            Create a new challenge for users to complete. This challenge is only
+            going to be seen by members in your challenge area.
           </div>
           <Typography className={classes.typography}> Challenge </Typography>
           <div>
@@ -103,7 +122,7 @@ class CreationDialog extends React.Component {
         </DialogContent>
 
         <DialogActions>
-        <Button
+          <Button
             onClick={this.handleCancel}
             variant="contained"
             color="secondary"
@@ -117,7 +136,6 @@ class CreationDialog extends React.Component {
           >
             Create
           </Button>
-          
         </DialogActions>
       </Dialog>
     );

@@ -17,6 +17,24 @@ class DeletionDialog extends React.Component {
     };
   }
 
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.handleHotkey);
+  }
+  componentDidMount() {
+    window.addEventListener("keydown", this.handleHotkey);
+  }
+  
+   // Handles the key press
+   handleHotkey = (e) =>{
+    // If ESC is pressed, close the component
+    if(e.KeyCode == 27){
+      this.props.onClose();
+      // ENTER pressed to delete challenge
+    } else if(e.KeyCode == 13){
+      this.props.onDeletion();
+    }
+  }
+
   // Handles the deletion selection.
   handleDeletion = () => {
     this.props.onDeletion();

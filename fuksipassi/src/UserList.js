@@ -12,7 +12,11 @@ class UserList extends React.Component {
       showEdit: false
     };
   }
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.handleHotkey);
+  }
   componentDidMount() {
+    window.addEventListener("keydown", this.handleHotkey);
     fetch("http://localhost:3000/api/user", {
       method: "GET",
       mode: "cors",
@@ -46,6 +50,13 @@ class UserList extends React.Component {
       showEdit: false
     });
   };
+  // Handles the key press
+  handleHotkey = (e) =>{
+    // If ESC is pressed, close the user list.
+    if(e.KeyCode == 27){
+      this.props.onClose();
+    }
+  }
   // Handles the user deleting
   handleUserDelete = id => {
     // Copy the user array

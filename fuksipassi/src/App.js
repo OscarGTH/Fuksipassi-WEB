@@ -17,7 +17,6 @@ import ProfileDialog from "./ProfileDialog.js";
 import IconButton from "@material-ui/core/IconButton";
 import ChallengeList from "./ChallengeList.js";
 
-
 class App extends React.Component {
   constructor() {
     super();
@@ -34,7 +33,7 @@ class App extends React.Component {
       previousColor: "",
       //Boolean to toggle redo button
       redo: false,
-       //Boolean to toggle undo button
+      //Boolean to toggle undo button
       undo: false,
       // Toggle boolean for editing profile.
       editProfile: false,
@@ -49,11 +48,11 @@ class App extends React.Component {
     this.handleLogout = this.handleLogout.bind(this);
   }
   componentDidMount() {
-    window.addEventListener("keydown",this.handleHotkey)
-    if(localStorage.getItem("color") !== null){
+    window.addEventListener("keydown", this.handleHotkey);
+    if (localStorage.getItem("color") !== null) {
       this.setState({
         barColor: localStorage.getItem("color")
-      })
+      });
     }
     // Check if the user has already logged in.
     if (localStorage.getItem("session") !== null) {
@@ -70,22 +69,27 @@ class App extends React.Component {
         });
       }
     }
-  
   }
-  componentWillUnmount(){
-    window.removeEventListener("keydown",this.handleHotkey)
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.handleHotkey);
   }
-  
+
   // Handles the hotkey presses
-  handleHotkey = (e) =>{
-   if(e.keyCode == 36){
-     this.handleProfile()
-   } else if(e.keyCode == 35){
-     this.handleSettings()
-   }else if(e.keyCode == 46 && this.state.user.role == 1){
-     this.handleUserList()
-   }
-  }
+  handleHotkey = e => {
+    // On Home
+    if (e.keyCode == 36) {
+      this.handleProfile();
+      // On End
+    } else if (e.keyCode == 35) {
+      this.handleLogout();
+      // On Delete
+    } else if (e.keyCode == 46 && this.state.user.role == 1) {
+      this.handleUserList();
+      //  On Insert
+    } else if (e.keyCode == 45) {
+      this.handleSettings();
+    }
+  };
 
   // Method that is called after login. Sets token and other important information to state.
   // Toggles MainMenu by setting auth => true.
@@ -157,14 +161,14 @@ class App extends React.Component {
     });
   };
   // Handles the undo button press
-  handleUndo = () =>{
-      this.setState({
-        previousColor: this.state.barColor,
-        barColor: this.state.previousColor,
-        undo: false,
-        redo: true
-      })
-  }
+  handleUndo = () => {
+    this.setState({
+      previousColor: this.state.barColor,
+      barColor: this.state.previousColor,
+      undo: false,
+      redo: true
+    });
+  };
   // Handles the redo button press
   handleRedo = () => {
     this.setState({
@@ -172,8 +176,8 @@ class App extends React.Component {
       barColor: this.state.previousColor,
       redo: false,
       undo: true
-    })
-  }
+    });
+  };
   // Handles the theme color changing from settings view
   handleColorChange = hex => {
     // Save color into local storage, so it doesn't get lost when refreshing page.
@@ -182,7 +186,7 @@ class App extends React.Component {
       undo: true,
       previousColor: this.state.barColor,
       barColor: hex
-    })
+    });
     this.handleSettings();
   };
 
@@ -195,24 +199,33 @@ class App extends React.Component {
               {this.state.showSettings || this.state.showUsers ? (
                 <div>
                   {this.state.showSettings && (
-                      <div style={{ display:' flex', justifyContent:'center'  }}>
-                    <Settings onClose={this.handleSettings} onSave={this.handleColorChange}/>
+                    <div style={{ display: " flex", justifyContent: "center" }}>
+                      <Settings
+                        onClose={this.handleSettings}
+                        onSave={this.handleColorChange}
+                      />
                     </div>
                   )}
                   {this.state.showUsers && (
-                      <div style={{ display:' flex', justifyContent:'center'  }}>
-                    <UserList onClose={this.handleUserList} token={this.state.token} user={this.state.user} />
+                    <div style={{ display: " flex", justifyContent: "center" }}>
+                      <UserList
+                        onClose={this.handleUserList}
+                        token={this.state.token}
+                        user={this.state.user}
+                      />
                     </div>
                   )}
                 </div>
               ) : (
                 <div>
-                  <ToolBar position="static" style={{backgroundColor: this.state.barColor}}>
+                  <ToolBar
+                    position="static"
+                    style={{ backgroundColor: this.state.barColor }}
+                  >
                     <Drawer
                       onClick={this.handleDrawerToggle}
                       width={300}
                       open={this.state.openDrawer}
-                      
                     >
                       <MenuItem onClick={this.handleSettings}>
                         Settings
@@ -239,13 +252,18 @@ class App extends React.Component {
                       <IconButton onClick={this.handleProfile}>
                         <AccountCircleIcon />
                       </IconButton>
-                      <IconButton disabled={!this.state.undo} onClick={this.handleUndo}>
+                      <IconButton
+                        disabled={!this.state.undo}
+                        onClick={this.handleUndo}
+                      >
                         <UndoIcon />
                       </IconButton>
-                      <IconButton disabled={!this.state.redo} onClick={this.handleRedo}>
+                      <IconButton
+                        disabled={!this.state.redo}
+                        onClick={this.handleRedo}
+                      >
                         <RedoIcon />
                       </IconButton>
-                      
                     </div>
                   </ToolBar>
                   <ChallengeList
@@ -255,8 +273,6 @@ class App extends React.Component {
                     color={this.state.barColor}
                   />
                   {this.state.editProfile && (
-                   
-
                     <ProfileDialog
                       targetUser={this.state.user}
                       currentUser={this.state.user}
@@ -265,7 +281,6 @@ class App extends React.Component {
                       onDelete={this.handleLogout}
                       onEdit={this.handleEdit}
                     />
-                    
                   )}
                 </div>
               )}

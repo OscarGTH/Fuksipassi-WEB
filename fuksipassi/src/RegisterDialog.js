@@ -18,6 +18,23 @@ class RegisterForm extends React.Component {
       };
     }
 
+    componentWillUnmount() {
+      window.removeEventListener("keydown", this.handleHotkey);
+    }
+    componentDidMount() {
+      window.addEventListener("keydown", this.handleHotkey);
+    }
+    
+     // Handles the key press
+     handleHotkey = (e) =>{
+      // If ESC is pressed, close settings view.
+      if(e.keyCode == 27){
+        this.props.onClose();
+      } else if (e.keyCode == 13 && this.state.checked && this.state.areaFound){
+        this.handleRegister()
+      }
+    }   
+
     // Handle text field changes
     handleChange = name => event => {
       this.setState({
