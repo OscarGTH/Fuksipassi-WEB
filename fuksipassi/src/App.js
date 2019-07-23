@@ -42,16 +42,26 @@ class App extends React.Component {
       // Toggle boolean for viewing settings view.
       showUsers: false,
       // Toggle for drawer opening
-      openDrawer: false
+      openDrawer: false,
+      // Sorting type for challenges
+      sortingType: 1
     };
     this.setAuthenticate = this.setAuthenticate.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
   }
   componentDidMount() {
+    // Add a key listener
     window.addEventListener("keydown", this.handleHotkey);
+    // Check local storage for saved color
     if (localStorage.getItem("color") !== null) {
       this.setState({
         barColor: localStorage.getItem("color")
+      });
+    }
+    // Check local storage for sorting type for challenges.
+    if (localStorage.getItem("sortingType") !== null) {
+      this.setState({
+        sortingType: localStorage.getItem("sortingType")
       });
     }
     // Check if the user has already logged in.
@@ -179,13 +189,15 @@ class App extends React.Component {
     });
   };
   // Handles the theme color changing from settings view
-  handleColorChange = hex => {
+  handleSettingsSave = (sorting, hex) => {
     // Save color into local storage, so it doesn't get lost when refreshing page.
     localStorage.setItem("color", hex);
+    localStorage.setItem("sortingType", sorting);
     this.setState({
       undo: true,
       previousColor: this.state.barColor,
-      barColor: hex
+      barColor: hex,
+      sortingType: sorting
     });
     this.handleSettings();
   };
@@ -201,8 +213,10 @@ class App extends React.Component {
                   {this.state.showSettings && (
                     <div style={{ display: " flex", justifyContent: "center" }}>
                       <Settings
+                      color={this.state.barColor}
+                      sorting={this.state.sortingType}
                         onClose={this.handleSettings}
-                        onSave={this.handleColorChange}
+                        onSave={this.handleSettingsSave}
                       />
                     </div>
                   )}
@@ -267,6 +281,7 @@ class App extends React.Component {
                     </div>
                   </ToolBar>
                   <ChallengeList
+                    sortingType={this.state.sortingType}
                     user={this.state.user}
                     token={this.state.token}
                     onLogout={this.handleLogout}

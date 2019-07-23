@@ -4,7 +4,6 @@ import { withStyles } from "@material-ui/core/styles";
 
 import classnames from "classnames";
 import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import CardActions from "@material-ui/core/CardActions";
@@ -17,7 +16,7 @@ import DeletionDialog from "./CardDeletionDialog.js";
 import { CardMedia } from "@material-ui/core";
 const styles = theme => ({
   card: {
-    backgroundColor: '#FFFF88',
+    backgroundColor: "#FFFF88",
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -27,7 +26,7 @@ const styles = theme => ({
   media: {
     maxHeight: 250,
     maxWidth: 500,
-   paddingTop: "5%",
+    paddingTop: "5%",
     marginLeft: "auto",
     marginRight: "auto",
     display: "block"
@@ -35,7 +34,9 @@ const styles = theme => ({
   thumbtack: {
     height: "55px",
     maxWidth: "57px",
-    position: "relative", top: "15px",right: "10px",
+    position: "relative",
+    top: "15px",
+    right: "10px",
     display: "block"
   },
   actions: {
@@ -66,10 +67,16 @@ class ExpandableCard extends React.Component {
     };
   }
   // Stopping the timeout when unmounting.
-  componentWillUnmount(){
-    if(this.state.timeout != null){
-      clearTimeout(this.state.timeout)
+  componentWillUnmount() {
+    if (this.state.timeout != null) {
+      clearTimeout(this.state.timeout);
     }
+  }
+  componentDidUpdate(prevProps) {
+    // Check if challenge props have been updated.
+    if (prevProps.challenge !== this.props.challenge) {
+      this.setState({ challenge: this.props.challenge });
+    } 
   }
   handleCompletion = file => {
     this.handleDialog();
@@ -92,22 +99,6 @@ class ExpandableCard extends React.Component {
       expanded: !this.state.expanded,
       showDialog: false
     });
-    if (this.state.type == 1) {
-      this.delayClosing();
-    }
-  };
-  // Closes the card after 5 seconds.
-  delayClosing = () => {
-    if (this.state.expanded !== true) {
-      var timeout = setTimeout(
-        function() {
-          this.setState({ expanded: false });
-        }.bind(this),
-        3000
-      );
-      this.setState({timeout: timeout})
-      
-    }
   };
 
   handleDialog = () => {
@@ -116,15 +107,34 @@ class ExpandableCard extends React.Component {
     });
   };
 
+  // Downloads the given image
+  download = (name, image) => {
+    // Create a new <a> element
+    var link = document.createElement("a");
+    // Set id to it
+    link.setAttribute("id", name);
+    // Set image as the href
+    link.href = `data:image/jpeg;base64,${image}`;
+    // Set image name as the challenge title
+    link.download = name;
+    // Append the created element to body as invisible element
+    document.body.appendChild(link);
+    // Force a click on the link to download the image.
+    link.click();
+  };
+
   undoneCard = () => {
     const { classes } = this.props;
     return (
       <Card className={classes.card}>
-        <CardMedia
-          title="Thumbtack">
-          <img className={classes.thumbtack} src={process.env.PUBLIC_URL + "/tack.png"}></img></CardMedia>
+        <img
+          className={classes.thumbtack}
+          src={process.env.PUBLIC_URL + "/tack.png"}
+        />
         <CardContent>
-          <Typography gutterBottom variant="h6" component="h2">{this.state.challenge.title}</Typography>
+          <Typography gutterBottom variant="h6" component="h2">
+            {this.state.challenge.title}
+          </Typography>
         </CardContent>
         <CardActions className={classes.actions}>
           <IconButton
@@ -167,11 +177,14 @@ class ExpandableCard extends React.Component {
     const { classes } = this.props;
     return (
       <Card className={classes.card}>
-        <CardMedia
-          title="Thumbtack">
-          <img className={classes.thumbtack} src={process.env.PUBLIC_URL + "/tack.png"}></img></CardMedia>
+        <img
+          className={classes.thumbtack}
+          src={process.env.PUBLIC_URL + "/tack.png"}
+        />
         <CardContent>
-        <Typography gutterBottom variant="h6" component="h2">{this.state.challenge.title}</Typography>
+          <Typography gutterBottom variant="h6" component="h2">
+            {this.state.challenge.title}
+          </Typography>
         </CardContent>
         <CardActions className={classes.actions}>
           <IconButton
@@ -217,11 +230,14 @@ class ExpandableCard extends React.Component {
     const { classes } = this.props;
     return (
       <Card className={classes.card}>
-       <CardMedia
-          title="Thumbtack">
-          <img className={classes.thumbtack} src={process.env.PUBLIC_URL + "/tack.png"}></img></CardMedia>
+        <img
+          className={classes.thumbtack}
+          src={process.env.PUBLIC_URL + "/tack.png"}
+        />
         <CardContent>
-        <Typography gutterBottom variant="h6" component="h2">{this.state.challenge.info.title}</Typography>
+          <Typography gutterBottom variant="h6" component="h2">
+            {this.state.challenge.info.title}
+          </Typography>
           <Typography>
             <b>User:</b> {this.state.challenge.email}
           </Typography>
@@ -257,7 +273,8 @@ class ExpandableCard extends React.Component {
             onClick={() =>
               this.props.onVerify(
                 this.state.challenge.userId,
-                this.state.challenge.challengeId
+                this.state.challenge.challengeId,
+                this.state.challenge.info.title
               )
             }
           >
@@ -284,11 +301,14 @@ class ExpandableCard extends React.Component {
     const { classes } = this.props;
     return (
       <Card className={classes.card}>
-      <CardMedia
-          title="Thumbtack">
-          <img className={classes.thumbtack} src={process.env.PUBLIC_URL + "/tack.png"}></img></CardMedia>
+        <img
+          className={classes.thumbtack}
+          src={process.env.PUBLIC_URL + "/tack.png"}
+        />
         <CardContent>
-        <Typography gutterBottom variant="h6" component="h2">{this.state.challenge.title}</Typography>
+          <Typography gutterBottom variant="h6" component="h2">
+            {this.state.challenge.title}
+          </Typography>
           <Typography>
             <b>Date of completion:</b> {this.state.challenge.image.date}
           </Typography>
@@ -314,7 +334,16 @@ class ExpandableCard extends React.Component {
               }`}
               alt="Proof of completion"
             />
-           
+            <Button
+              onClick={() =>
+                this.download(
+                  this.state.challenge.title,
+                  this.state.challenge.image.img.data
+                )
+              }
+            >
+              Download image
+            </Button>
           </CardContent>
         </Collapse>
       </Card>

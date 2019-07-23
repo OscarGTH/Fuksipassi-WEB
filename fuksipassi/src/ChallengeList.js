@@ -26,53 +26,61 @@ class ChallengeList extends React.Component {
       // Contains  challenges that have been completed and verified by admin
       doneChall: [],
       // Contains all pending challenges for the area (Admin view only)
-      pendingChall:[],
+      pendingChall: [],
       // Contains user specific challenges which he has completed but not yet gotten verified
       unverifiedChall: [],
       url: "http://localhost:3000/api/",
       tabValue: 0,
       showCreatDialog: false,
       message: "",
-      mounted: false
+      mounted: false,
+      sortingType: this.props.sortingType
     };
   }
   componentDidUpdate(prevProps) {
-    if(prevProps.color !== this.props.color) {
-      this.setState({barColor: this.props.color});
+    // Check if color has been updated in props
+    if (prevProps.color !== this.props.color) {
+      this.setState({ barColor: this.props.color });
+      //Check if sorting type has been changed.
+    } else if (prevProps.sortingType !== this.props.sortingType) {
+      this.setState({ sortingType: this.props.sortingType });
     }
   }
-  componentWillUnmount(){
-    window.removeEventListener("keydown",this.handleHotkey)
+  componentWillUnmount() {
+    window.removeEventListener("keydown", this.handleHotkey);
     this.setState({
       mounted: false
-    })
+    });
   }
 
-   componentDidMount() {
-     window.addEventListener("keydown",this.handleHotkey)
-     this.setState({
-       mounted: true
-     })
-     this.getChallenges();
+  componentDidMount() {
+    window.addEventListener("keydown", this.handleHotkey);
+    this.setState({
+      mounted: true
+    });
+    this.getChallenges();
   }
 
-  handleHotkey = (e) =>{
+  handleHotkey = e => {
     // If left arrow key is pressed, decrease tab value by one.
-    if(e.keyCode == 37){
-      var tabVal = this.state.tabValue
-      if(tabVal > 0 ){
+    if (e.keyCode == 37) {
+      var tabVal = this.state.tabValue;
+      if (tabVal > 0) {
         tabVal--;
       }
-      this.setState({tabValue: tabVal})
+      this.setState({ tabValue: tabVal });
       //If right arrow key is pressed, increase tab value by one.
-    } else if(e.keyCode == 39){
-      var tabVal = this.state.tabValue
-      if(tabVal < 2 &&  this.state.user.role == 0 || tabVal < 1 && this.state.user.role){
+    } else if (e.keyCode == 39) {
+      var tabVal = this.state.tabValue;
+      if (
+        (tabVal < 2 && this.state.user.role == 0) ||
+        (tabVal < 1 && this.state.user.role)
+      ) {
         tabVal++;
       }
-      this.setState({tabValue: tabVal})
+      this.setState({ tabValue: tabVal });
     }
-  }
+  };
 
   // Fetches all challenges and sets them into state.
   getChallenges = () => {
@@ -85,9 +93,11 @@ class ChallengeList extends React.Component {
         cache: "no-cache"
       }).then(res => {
         res.json().then(body => {
-          if(this.state.mounted){
+          if (this.state.mounted && typeof body.data !== "undefined") {
+            // Sort challenges into the given order
+            var challenges = this.sortByName(this.state.sortingType, body.data);
             this.setState({
-              doneChall: body.data
+              doneChall: challenges
             });
           }
         });
@@ -102,11 +112,13 @@ class ChallengeList extends React.Component {
         cache: "no-cache"
       }).then(res => {
         res.json().then(body => {
-          if(this.state.mounted){
-          this.setState({
-            unverifiedChall: body.data
-          });
-        }
+          if (this.state.mounted && typeof body.data !== "undefined") {
+            // Sort challenges into the given order
+            var challenges = this.sortByName(this.state.sortingType, body.data);
+            this.setState({
+              unverifiedChall: challenges
+            });
+          }
         });
       });
     } else {
@@ -119,11 +131,14 @@ class ChallengeList extends React.Component {
         cache: "no-cache"
       }).then(res => {
         res.json().then(body => {
-          if(this.state.mounted){
-          this.setState({
-            pendingChall: body.data
-          });
-        }
+          // Check if component is mounted and if body is not undefined
+          if (this.state.mounted && typeof body.data !== "undefined") {
+            // Sort challenges into the given order
+            
+            this.setState({
+              pendingChall: body.data
+            });
+          }
         });
       });
     }
@@ -137,9 +152,12 @@ class ChallengeList extends React.Component {
       cache: "no-cache"
     }).then(res => {
       res.json().then(body => {
-        if(this.state.mounted){
+        // Check if component is mounted and if body is not undefined
+        if (this.state.mounted && typeof body.data !== "undefined") {
+          // Sort challenges into the given order
+          var challenges = this.sortByName(this.state.sortingType, body.data);
           this.setState({
-            undoneChall: body.data
+            undoneChall: challenges
           });
         }
       });
@@ -168,7 +186,7 @@ class ChallengeList extends React.Component {
     });
   };
 
-  handleVerification = (userId, challengeId) => {
+  handleVerification = (userId, challengeId, name) => {
     fetch(this.state.url + "challenge/verify/" + userId + "/" + challengeId, {
       method: "PATCH",
       cache: "no-cache"
@@ -210,6 +228,24 @@ class ChallengeList extends React.Component {
       }
     });
   };
+
+  // Sorts the challenges by their name in alphabetical order.
+  sortByName = (type, challenges) => {
+    // Copy the array from state.
+    let sorted = challenges.slice();
+    if (type === 1) {
+      // Sort into ascending order.
+      sorted.sort((a, b) => {
+        return ("" + a.title).localeCompare(b.title);
+      });
+    } else {
+      // Sort into descending order.
+      sorted.sort((a, b) => {
+        return ("" + b.title).localeCompare(a.title);
+      });
+    }
+    return sorted;
+  };
   // Returns the cards for challenges that are done.
   doneContent() {
     return this.state.doneChall.map(challenge => (
@@ -217,7 +253,7 @@ class ChallengeList extends React.Component {
         key={challenge[0].image.date}
         style={{ margin: "30px", listStyleType: "none" }}
       >
-        <div style={{ display:' flex', justifyContent:'center'  }}>
+        <div style={{ display: " flex", justifyContent: "center" }}>
           <ExpandableCard challenge={challenge[0]} type="3" />
         </div>
       </li>
@@ -230,8 +266,13 @@ class ChallengeList extends React.Component {
         key={challenge[0].image.date}
         style={{ margin: "30px", listStyleType: "none" }}
       >
-        <div style={{ display:' flex', justifyContent:'center'  }}>
-          <ExpandableCard challenge={challenge[0]} type="1" userId={this.state.user.userId} onDelete={this.handleEntryDeletion}/>
+        <div style={{ display: " flex", justifyContent: "center" }}>
+          <ExpandableCard
+            challenge={challenge[0]}
+            type="1"
+            userId={this.state.user.userId}
+            onDelete={this.handleEntryDeletion}
+          />
         </div>
       </li>
     ));
@@ -242,14 +283,18 @@ class ChallengeList extends React.Component {
       typeof this.state.pendingChall !== "undefined" &&
       this.state.pendingChall.length > 0
     ) {
-
       return this.state.pendingChall.map(challenge => (
         <li
-          key={challenge._id}
+          key={challenge[0]._id}
           style={{ margin: "30px", listStyleType: "none" }}
         >
-          <div style={{ display:' flex', justifyContent:'center'  }}>
-            <ExpandableCard challenge={challenge[0]} onDelete={this.handleEntryDeletion} onVerify={this.handleVerification} type="2" />
+          <div style={{ display: " flex", justifyContent: "center" }}>
+            <ExpandableCard
+              challenge={challenge[0]}
+              onDelete={this.handleEntryDeletion}
+              onVerify={this.handleVerification}
+              type="2"
+            />
           </div>
         </li>
       ));
@@ -259,12 +304,11 @@ class ChallengeList extends React.Component {
   undoneContent() {
     if (typeof this.state.undoneChall !== "undefined") {
       return this.state.undoneChall.map(challenge => (
-        
         <li
           key={challenge.challengeId}
           style={{ margin: "30px", listStyleType: "none" }}
         >
-          <div style={{ display:' flex', justifyContent:'center'  }}>
+          <div style={{ display: " flex", justifyContent: "center" }}>
             <ExpandableCard
               challenge={challenge}
               type="0"

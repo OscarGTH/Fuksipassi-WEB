@@ -2,36 +2,80 @@ import RegisterForm from "./RegisterDialog.js";
 import CollectionForm from "./CollectionCreation.js";
 import React from "react";
 
-import {TextField,
- Button, Paper, Typography} from "@material-ui/core/";
+import { TextField, Button, Paper, Typography } from "@material-ui/core/";
 
 // Component to display login
 class LoginForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      // User's email
       email: " ",
+      // User's password
       password: "",
+      // Toggle for user registration dialog
       showUserReg: false,
+      // Toggle for adming registration dialog
       showAdminReg: false,
-      message: ""
+      // Shows a message to user, for example indicating a failure or success
+      message: "",
+      // Indicates which component if selected
+      focus: 0
     };
+    this.emailInput = React.createRef();
+    this.passwordInput = React.createRef();
+    this.loginInput = React.createRef();
     this.handleRegister = this.handleRegister.bind(this);
   }
-  componentDidMount(){
+  componentDidMount() {
+    this.emailInput.current.focus();
     // Add event listener to listen for enter key presses.
-    window.addEventListener("keydown", this.handleKeypress)
+    window.addEventListener("keydown", this.handleKeypress);
   }
-  componentWillUnmount(){
+  componentWillUnmount() {
     // Removing event listener when unmounting.
-    window.removeEventListener("keydown",this.handleKeypress)
+    window.removeEventListener("keydown", this.handleKeypress);
   }
   // Handles Enter key press and logs the user in.
-  handleKeypress = (e) =>{
-    if(e.keyCode == 13 && this.state.email != "" && this.state.password != ""){
-      this.login()
+  handleKeypress = e => {
+    if (
+      e.keyCode == 13 &&
+      this.state.email != "" &&
+      this.state.password != ""
+    ) {
+      this.login();
+      // Happens when up arrow is pressed
+    } else if (e.keyCode == 38) {
+      // Check which element is focused and don't let the number go negative
+      if (this.state.focus > 0) {
+        this.setState({ focus: this.state.focus - 1 });
+        this.focus(this.state.focus);
+       
+      }
+      // Happens when down arrow is pressed
+    } else if (e.keyCode == 40) {
+      // Limits from going out of bounds
+      if (this.state.focus < 2) {
+        this.setState({ focus: this.state.focus + 1 });
+        // Call focusing method
+        this.focus(this.state.focus);
+      }
     }
-  }
+  };
+  
+  // Focuses element according to the given value
+  focus = value => {
+    // If value is 0, focus on email field
+    if (value == 0) {
+      this.emailInput.current.focus();
+      // If value is 1, focus on password field
+    } else if (value == 1) {
+      this.passwordInput.current.focus();
+      // Focus on login button
+    } else {
+      this.loginInput.current.focus();
+    } 
+  };
   // Calls parent component method to when the user has logged in.
   auth = (user, token) => {
     this.props.onAuthenticate(user, token);
@@ -92,65 +136,73 @@ class LoginForm extends React.Component {
   };
   render() {
     return (
-      <Paper style={{width: 350, padding: 20}}>
-      <div>
-        <h1> Fuksipassi </h1>
-        <h3> Sign in </h3>
-        <Typography>{this.state.message}</Typography>
+      <Paper style={{ width: 350, padding: 20 }}>
         <div>
-          <TextField
-            label="Email"
-            style={{width: 300}}
-            type="email"
-            autoComplete="email"
-            variant="outlined"
-            margin="normal"
-            value={this.state.email}
-            onChange={this.handleChange("email")}
-          />
-        </div>
-        <TextField
-          label="Password"
-          style={{width: 300, justifyContent: "center"}}
-          type="password"
-          margin="normal"
-          variant="outlined"
-          value={this.state.password}
-          onChange={this.handleChange("password")}
-        />
+          <h1> Fuksipassi </h1>
+          <h3> Sign in </h3>
+          <Typography>{this.state.message}</Typography>
 
-        <div>
-          <Button onClick={this.login} style={{ backgroundColor: "Lavender" }} variant="contained">
-            Login
-          </Button>
-        </div>
-        <div>
-          <div> 
-            <p
-              id="signup"
-              onClick={this.toggleUserRegister}
-              style={{ color: "blue" }}
+          <div>
+            <TextField
+              inputRef={this.emailInput}
+              label="Email"
+              style={{ width: 300 }}
+              type="email"
+              autoComplete="email"
+              variant="outlined"
+              margin="normal"
+              value={this.state.email}
+              onChange={this.handleChange("email")}
+            />
+          </div>
+          <TextField
+            inputRef={this.passwordInput}
+            label="Password"
+            style={{ width: 300, justifyContent: "center" }}
+            type="password"
+            margin="normal"
+            variant="outlined"
+            value={this.state.password}
+            onChange={this.handleChange("password")}
+          />
+
+          <div>
+            <Button
+              onClick={this.login}
+              style={{ backgroundColor: "Lavender" }}
+              variant="contained"
+              buttonRef={this.loginInput}
             >
-             Create an account?
-            </p>
-            {this.state.showUserReg && (
-              <RegisterForm onClose={this.handleRegister} />
-            )}
+              Login
+            </Button>
           </div>
           <div>
-            <p
-              id="signup"
-              onClick={this.toggleAdminRegister}
-              style={{ color: "blue" }}
-            >
-              Create an area?
-            </p>
-            {this.state.showAdminReg && (
-              <CollectionForm onClose={this.handleRegister} />
-            )}
+            <div>
+              <p
+                id="signup"
+                onClick={this.toggleUserRegister}
+                style={{ color: "blue" }}
+              >
+                Create an account?
+              </p>
+              {this.state.showUserReg && (
+                <RegisterForm onClose={this.handleRegister} />
+              )}
+            </div>
+            <div>
+              <p
+                id="signup"
+                onClick={this.toggleAdminRegister}
+                style={{ color: "blue" }}
+              >
+                Create an area?
+              </p>
+              {this.state.showAdminReg && (
+                <CollectionForm onClose={this.handleRegister} />
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </Paper>
     );
   }
