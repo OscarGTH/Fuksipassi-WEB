@@ -72,7 +72,7 @@ class CreationDialog extends React.Component {
       description: this.state.description
     };
     console.log(challenge);
-    fetch("http://localhost:3000/api/" + "challenge", {
+    fetch("http://localhost:3000/api/challenge", {
       credentials: "same-origin",
       headers: {
         "Content-Type": "application/json"
@@ -81,7 +81,6 @@ class CreationDialog extends React.Component {
       body: JSON.stringify(challenge)
     }).then(res => {
       if (res.ok) {
-        console.log("Is ok");
         this.props.onClose();
       } else {
         res.json(body => {

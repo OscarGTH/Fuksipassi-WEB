@@ -41,7 +41,7 @@ class ChallengeList extends React.Component {
       // Boolean to see if component has been mounted or not.
       mounted: false,
       // Tells which way challenges are sorted
-      sortingType: this.props.sortingType,
+      sortingType: this.props.sortingType
     };
   }
   componentDidUpdate(prevProps) {
