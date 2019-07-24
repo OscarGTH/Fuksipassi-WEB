@@ -8,6 +8,7 @@ import AddIcon from "@material-ui/icons/Add";
 import CreationDialog from "./ChallengeCreationDialog.js";
 import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
+
 const styles = theme => ({
   appbar: {
     color: "#ffffff"
@@ -29,12 +30,18 @@ class ChallengeList extends React.Component {
       pendingChall: [],
       // Contains user specific challenges which he has completed but not yet gotten verified
       unverifiedChall: [],
+      // The url of the api
       url: "http://localhost:3000/api/",
+      // Tab's current value
       tabValue: 0,
+      // Toggle for challenge creation dialog
       showCreatDialog: false,
+      // Message to display when something goes wrong or needs to be announced
       message: "",
+      // Boolean to see if component has been mounted or not.
       mounted: false,
-      sortingType: this.props.sortingType
+      // Tells which way challenges are sorted
+      sortingType: this.props.sortingType,
     };
   }
   componentDidUpdate(prevProps) {
@@ -63,15 +70,14 @@ class ChallengeList extends React.Component {
 
   handleHotkey = e => {
     // If left arrow key is pressed, decrease tab value by one.
+    var tabVal = this.state.tabValue;
     if (e.keyCode == 37) {
-      var tabVal = this.state.tabValue;
       if (tabVal > 0) {
         tabVal--;
       }
       this.setState({ tabValue: tabVal });
       //If right arrow key is pressed, increase tab value by one.
     } else if (e.keyCode == 39) {
-      var tabVal = this.state.tabValue;
       if (
         (tabVal < 2 && this.state.user.role == 0) ||
         (tabVal < 1 && this.state.user.role)
@@ -94,8 +100,13 @@ class ChallengeList extends React.Component {
       }).then(res => {
         res.json().then(body => {
           if (this.state.mounted && typeof body.data !== "undefined") {
+            var array = [];
+            // Move elements from two dimensional array to one dimensional
+            for (var i = 0; i < body.data.length; i++) {
+              array.push(body.data[i][0]);
+            }
             // Sort challenges into the given order
-            var challenges = this.sortByName(this.state.sortingType, body.data);
+            var challenges = this.sortByName(this.state.sortingType, array);
             this.setState({
               doneChall: challenges
             });
@@ -103,7 +114,7 @@ class ChallengeList extends React.Component {
         });
       });
 
-      // Fetch challenges that haven't been completed.
+      // Fetch challenges that are pending for only one user.
       fetch(this.state.url + "challenge/pending/" + this.state.user.userId, {
         method: "GET",
         headers: {
@@ -113,8 +124,13 @@ class ChallengeList extends React.Component {
       }).then(res => {
         res.json().then(body => {
           if (this.state.mounted && typeof body.data !== "undefined") {
+            var array = new Array();
+            // Move elements from two dimensional array to one dimensional
+            for (var i = 0; i < body.data.length; i++) {
+              array.push(body.data[i][0]);
+            }
             // Sort challenges into the given order
-            var challenges = this.sortByName(this.state.sortingType, body.data);
+            var challenges = this.sortByName(this.state.sortingType, array);
             this.setState({
               unverifiedChall: challenges
             });
@@ -122,7 +138,7 @@ class ChallengeList extends React.Component {
         });
       });
     } else {
-      // Fetch challenges that haven't been completed.
+      // Fetch all challenges that are not verified (Admin only)
       fetch(this.state.url + "challenge/pending", {
         method: "GET",
         headers: {
@@ -133,10 +149,15 @@ class ChallengeList extends React.Component {
         res.json().then(body => {
           // Check if component is mounted and if body is not undefined
           if (this.state.mounted && typeof body.data !== "undefined") {
+            var array = new Array();
+            // Move elements from two dimensional array to one dimensional
+            for (var i = 0; i < body.data.length; i++) {
+              array.push(body.data[i][0]);
+            }
             // Sort challenges into the given order
-            
+            var challenges = this.sortByName(this.state.sortingType, array);
             this.setState({
-              pendingChall: body.data
+              pendingChall: challenges
             });
           }
         });
@@ -156,6 +177,7 @@ class ChallengeList extends React.Component {
         if (this.state.mounted && typeof body.data !== "undefined") {
           // Sort challenges into the given order
           var challenges = this.sortByName(this.state.sortingType, body.data);
+
           this.setState({
             undoneChall: challenges
           });
@@ -229,32 +251,51 @@ class ChallengeList extends React.Component {
     });
   };
 
-  // Sorts the challenges by their name in alphabetical order.
-  sortByName = (type, challenges) => {
+  // Sorts the challenges by their name in alphabetical (Ascending or descending) order.
+  sortByName = (method, challenges) => {
     // Copy the array from state.
     let sorted = challenges.slice();
-    if (type === 1) {
-      // Sort into ascending order.
-      sorted.sort((a, b) => {
-        return ("" + a.title).localeCompare(b.title);
-      });
-    } else {
-      // Sort into descending order.
-      sorted.sort((a, b) => {
-        return ("" + b.title).localeCompare(a.title);
-      });
+    // Check that array is not empty
+    if (sorted.length > 0) {
+      // If the challenge array is formed differently, go here
+      if (typeof sorted[0].title == "undefined") {
+        if (method === 1) {
+          // Sort into ascending order.
+          sorted.sort((a, b) => {
+            return ("" + a.info.title).localeCompare(b.info.title);
+          });
+        } else {
+          // Sort into descending order.
+          sorted.sort((a, b) => {
+            return ("" + b.info.title).localeCompare(a.info.title);
+          });
+        }
+      } else {
+        if (method === 1) {
+          // Sort into ascending order.
+          sorted.sort((a, b) => {
+            return ("" + a.title).localeCompare(b.title);
+          });
+        } else {
+          // Sort into descending order.
+          sorted.sort((a, b) => {
+            return ("" + b.title).localeCompare(a.title);
+          });
+        }
+      }
     }
+    // Return sorted challenges.
     return sorted;
   };
   // Returns the cards for challenges that are done.
   doneContent() {
     return this.state.doneChall.map(challenge => (
       <li
-        key={challenge[0].image.date}
+        key={challenge.image.date}
         style={{ margin: "30px", listStyleType: "none" }}
       >
         <div style={{ display: " flex", justifyContent: "center" }}>
-          <ExpandableCard challenge={challenge[0]} type="3" />
+          <ExpandableCard challenge={challenge} type="3" />
         </div>
       </li>
     ));
@@ -263,12 +304,12 @@ class ChallengeList extends React.Component {
   unverifiedContent() {
     return this.state.unverifiedChall.map(challenge => (
       <li
-        key={challenge[0].image.date}
+        key={challenge.image.date}
         style={{ margin: "30px", listStyleType: "none" }}
       >
         <div style={{ display: " flex", justifyContent: "center" }}>
           <ExpandableCard
-            challenge={challenge[0]}
+            challenge={challenge}
             type="1"
             userId={this.state.user.userId}
             onDelete={this.handleEntryDeletion}
@@ -285,12 +326,12 @@ class ChallengeList extends React.Component {
     ) {
       return this.state.pendingChall.map(challenge => (
         <li
-          key={challenge[0]._id}
+          key={challenge._id}
           style={{ margin: "30px", listStyleType: "none" }}
         >
           <div style={{ display: " flex", justifyContent: "center" }}>
             <ExpandableCard
-              challenge={challenge[0]}
+              challenge={challenge}
               onDelete={this.handleEntryDeletion}
               onVerify={this.handleVerification}
               type="2"

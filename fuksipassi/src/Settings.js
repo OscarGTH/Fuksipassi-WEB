@@ -5,7 +5,6 @@ import {
   Button,
   Paper,
   FormControl,
-  FormLabel,
   RadioGroup,
   FormControlLabel,
   Radio
@@ -18,6 +17,8 @@ class Settings extends React.Component {
       barColor: this.props.color,
       sorting: this.props.sorting
     };
+    this.ascended = React.createRef();
+    this.descended = React.createRef();
   }
 
   componentWillUnmount() {
@@ -30,8 +31,12 @@ class Settings extends React.Component {
   // Handles the key press
   handleHotkey = e => {
     // If ESC is pressed, close settings view.
-    if (e.KeyCode == 27) {
+    if (e.keyCode == 27) {
       this.props.onClose();
+    } else if(e.keyCode == 13){
+      this.handleSaving();
+    } else if(e.keyCode == 38 || e.keyCode == 40){
+      this.setState({sorting: !this.state.sorting})
     }
   };
   handleColorChange = color => {
@@ -56,8 +61,8 @@ class Settings extends React.Component {
   render() {
     return (
       <Paper style={{ maxWidth: "500px" }}>
-        <div style={{ display: "flex" }}>
-          <div>
+        <div style={{ display: "flex"}}>
+          <div  style={{margin: "20px" }}>
             <Typography>Theme color</Typography>
             <SketchPicker
               color={this.state.barColor}
@@ -65,9 +70,9 @@ class Settings extends React.Component {
             />
           </div>
 
-          <div>
+          <div style={{margin: "20px" }}>
             <FormControl>
-              <FormLabel> Sort challenges </FormLabel>
+              <Typography> Sort challenges </Typography>
               <RadioGroup
                 value={this.state.sorting ? "ascending" : "descending"}
                 onChange={this.handleSortingChange}

@@ -240,61 +240,81 @@ exports.addUser = [
             res.status(400).json({ message: "Invalid area name." });
             return true;
           } else {
-            // If password was sent with the request, compare it with the area password.
-            if (typeof req.body.areaPass !== "undefined") {
-              bcrypt.compare(
-                req.body.areaPass,
-                coll[0].password,
-                (err, result) => {
-                  if (err) {
-                    return res
-                      .status(401)
-                      .json({ message: "Authorization failed" });
+            // Promise for checking in case there is a password.
+            var promise = new Promise(function(resolve, reject) {
+              // If password was sent with the request, compare it with the area password.
+              if (typeof req.body.areaPass !== "undefined") {
+                bcrypt.compare(
+                  req.body.areaPass,
+                  coll[0].password,
+                  (err, result) => {
+                    if (err) {
+                      // In case of error, resolve as failure has happened.
+                      resolve(true);
+                    } else if (result == false) {
+                      // Password was incorrect and resolving with true, that failure has happened
+                      resolve(true);
+                    } else{
+                      // Password was correct and resolving
+                      resolve(false)
+                    }
                   }
-                }
-              );
-            }
+                );
+                // If password wasn't set, continue normally and resolve promise.
+              } else{
+                resolve(false)
+              }
+            });
+            // Doing password check before continuing
+            promise.then(function(failure) {
+              // If password was incorrect, return error response.
+              if (failure) {
+                return res
+                  .status(400)
+                  .json({ message: "Authorization failed" });
+              } else {
+                // First off, make sure the email is not duplicate.
+                User.find({ email: req.body.email })
+                  .exec()
+                  .then(result => {
+                    // If there were result when searching with the email, return with a error message.
+                    if (result[0]) {
+                      res.status(400).json({ message: "Email already in use" });
+                    } else {
+                      // Create a new user.
+                      var user = new User();
 
-            // First off, make sure the email is not duplicate.
-            User.find({ email: req.body.email })
-              .exec()
-              .then(result => {
-                // If there were result when searching with the email, return with a error message.
-                if (result[0]) {
-                  res.status(400).json({ message: "Email already in use" });
-                } else {
-                  // Create a new user.
-                  var user = new User();
+                      // Hashing password.
+                      bcrypt.hash(req.body.password, saltRounds, function(
+                        err,
+                        hash
+                      ) {
+                        // Setting the user data.
+                        (user.email = req.body.email),
+                          (user.password = hash),
+                          (user.homeArea = req.body.area),
+                          (user.role = 0);
 
-                  // Hashing password.
-                  bcrypt.hash(req.body.password, saltRounds, function(
-                    err,
-                    hash
-                  ) {
-                    // Setting the user data.
-                    (user.email = req.body.email),
-                      (user.password = hash),
-                      (user.homeArea = req.body.area),
-                      (user.role = 0);
-
-                    user.userId = ObjectID();
-                    // Save user into database.
-                    user.save(function(err) {
-                      if (err) {
-                        console.log("error when saving!");
-                        res
-                          .status(401)
-                          .json({ message: "Authorization failed" });
-                      } else {
-                        // Send status with a message and the users email.
-                        res.status(200).json({
-                          message: "Account created"
+                        user.userId = ObjectID();
+                        // Save user into database.
+                        user.save(function(err) {
+                          if (err) {
+                            console.log("error when saving!");
+                            res
+                              .status(401)
+                              .json({ message: "Authorization failed" });
+                          } else {
+                            // Send status with a message and the users email.
+                            res.status(200).json({
+                              message: "Account created"
+                            });
+                          }
                         });
-                      }
-                    });
+                      });
+                    }
                   });
-                }
-              });
+              }
+            });
           }
         });
     } else {
@@ -646,7 +666,6 @@ exports.getDoneChallenges = [
       .then(result => {
         // Check if the user hasn't completed any challenges.
         if (!result) {
-          console.log("Zero completed challenges.");
           res.status(401).json({ message: "No completed challenges found." });
         } else {
           // Save the completed challenge's identifiers in an array.

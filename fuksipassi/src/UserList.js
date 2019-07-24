@@ -53,7 +53,8 @@ class UserList extends React.Component {
   // Handles the key press
   handleHotkey = (e) =>{
     // If ESC is pressed, close the user list.
-    if(e.KeyCode == 27){
+    if(e.keyCode == 27){
+      console.log("on close called")
       this.props.onClose();
     }
   }

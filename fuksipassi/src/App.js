@@ -190,11 +190,17 @@ class App extends React.Component {
   };
   // Handles the theme color changing from settings view
   handleSettingsSave = (sorting, hex) => {
+    let setUndo = false;
+    // See if color was changed at all or if it was the same as it used to be. Only undo if it was changed.
+    if(localStorage.getItem("color") != hex && hex != this.state.barColor){
+      setUndo = true
+    }
     // Save color into local storage, so it doesn't get lost when refreshing page.
     localStorage.setItem("color", hex);
     localStorage.setItem("sortingType", sorting);
     this.setState({
-      undo: true,
+      redo: false,
+      undo: setUndo,
       previousColor: this.state.barColor,
       barColor: hex,
       sortingType: sorting
