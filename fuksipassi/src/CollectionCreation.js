@@ -92,7 +92,7 @@ class CollectionForm extends React.Component {
     fetch("http://localhost:3000/api/admin", {
       credentials: "same-origin",
       headers: {
-        "Content-Type": "application/json"
+        "Content-type": "application/json"
       },
       method: "POST",
       body: JSON.stringify(user)

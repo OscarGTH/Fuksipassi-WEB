@@ -8,6 +8,7 @@ import LogoutIcon from "@material-ui/icons/Input";
 import UndoIcon from "@material-ui/icons/Undo";
 import RedoIcon from "@material-ui/icons/Redo";
 import MenuIcon from "@material-ui/icons/Menu";
+import HelpIcon from "@material-ui/icons/Help";
 import Drawer from "@material-ui/core/Drawer";
 import MenuItem from "@material-ui/core/MenuItem";
 import UserList from "./UserList";
@@ -16,6 +17,7 @@ import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import ProfileDialog from "./ProfileDialog.js";
 import IconButton from "@material-ui/core/IconButton";
 import ChallengeList from "./ChallengeList.js";
+import Tutorial from "./Tutorial.js";
 
 class App extends React.Component {
   constructor() {
@@ -29,6 +31,8 @@ class App extends React.Component {
       token: "",
       // Color theme of the app bar
       barColor: "#FFBB4C",
+      // Color of the challenge card
+      cardColor: "#FFFF88",
       // Previous color theme
       previousColor: "",
       //Boolean to toggle redo button
@@ -43,11 +47,12 @@ class App extends React.Component {
       showUsers: false,
       // Toggle for drawer opening
       openDrawer: false,
+      // Toggle for opening help menu
+      showHelp: false,
       // Sorting type for challenges
       sortingType: 1
     };
-    this.setAuthenticate = this.setAuthenticate.bind(this);
-    this.handleLogout = this.handleLogout.bind(this);
+   
   }
   componentDidMount() {
     // Add a key listener
@@ -56,6 +61,11 @@ class App extends React.Component {
     if (localStorage.getItem("color") !== null) {
       this.setState({
         barColor: localStorage.getItem("color")
+      });
+    }
+    if (localStorage.getItem("cardColor") !== null) {
+      this.setState({
+        cardColor: localStorage.getItem("cardColor")
       });
     }
     // Check local storage for sorting type for challenges.
@@ -152,6 +162,11 @@ class App extends React.Component {
       user: updatedUser
     });
   };
+  handleHelp = () => {
+    this.setState({
+      showHelp: !this.state.showHelp
+    });
+  };
   // Toggles the drawer open and close.
   handleDrawerToggle = () => {
     this.setState({
@@ -189,20 +204,25 @@ class App extends React.Component {
     });
   };
   // Handles the theme color changing from settings view
-  handleSettingsSave = (sorting, hex) => {
+  handleSettingsSave = (sorting,barColor,cardColor) => {
     let setUndo = false;
     // See if color was changed at all or if it was the same as it used to be. Only undo if it was changed.
-    if(localStorage.getItem("color") != hex && hex != this.state.barColor){
-      setUndo = true
+    if (localStorage.getItem("color") != barColor && barColor != this.state.barColor) {
+      setUndo = true;
+    }
+    if (localStorage.getItem("cardColor") != cardColor && cardColor != this.state.cardColor) {
+      setUndo = true;
     }
     // Save color into local storage, so it doesn't get lost when refreshing page.
-    localStorage.setItem("color", hex);
+    localStorage.setItem("color", barColor);
+    localStorage.setItem("cardColor", cardColor);
     localStorage.setItem("sortingType", sorting);
     this.setState({
       redo: false,
       undo: setUndo,
       previousColor: this.state.barColor,
-      barColor: hex,
+      barColor: barColor,
+      cardColor: cardColor,
       sortingType: sorting
     });
     this.handleSettings();
@@ -211,16 +231,19 @@ class App extends React.Component {
   render() {
     return (
       <div className="App">
-        <MuiThemeProvider>
+        
           {this.state.auth ? (
             <div>
-              {this.state.showSettings || this.state.showUsers ? (
+              {this.state.showSettings ||
+              this.state.showUsers ||
+              this.state.showHelp ? (
                 <div>
                   {this.state.showSettings && (
                     <div style={{ display: " flex", justifyContent: "center" }}>
                       <Settings
-                      color={this.state.barColor}
-                      sorting={this.state.sortingType}
+                        barColor={this.state.barColor}
+                        cardColor={this.state.cardColor}
+                        sorting={this.state.sortingType}
                         onClose={this.handleSettings}
                         onSave={this.handleSettingsSave}
                       />
@@ -233,6 +256,11 @@ class App extends React.Component {
                         token={this.state.token}
                         user={this.state.user}
                       />
+                    </div>
+                  )}
+                  {this.state.showHelp && (
+                    <div style={{ display: " flex", justifyContent: "center" }}>
+                      <Tutorial onClose={this.handleHelp} />
                     </div>
                   )}
                 </div>
@@ -284,6 +312,9 @@ class App extends React.Component {
                       >
                         <RedoIcon />
                       </IconButton>
+                      <IconButton onClick={this.handleHelp}>
+                        <HelpIcon/>
+                      </IconButton>
                     </div>
                   </ToolBar>
                   <ChallengeList
@@ -292,6 +323,7 @@ class App extends React.Component {
                     token={this.state.token}
                     onLogout={this.handleLogout}
                     color={this.state.barColor}
+                    cardColor={this.state.cardColor}
                   />
                   {this.state.editProfile && (
                     <ProfileDialog
@@ -320,7 +352,7 @@ class App extends React.Component {
               </Grid>
             </Grid>
           )}
-        </MuiThemeProvider>
+        
       </div>
     );
   }

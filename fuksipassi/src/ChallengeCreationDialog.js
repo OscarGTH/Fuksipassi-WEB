@@ -71,11 +71,11 @@ class CreationDialog extends React.Component {
       title: this.state.title,
       description: this.state.description
     };
-    console.log(challenge);
     fetch("http://localhost:3000/api/challenge", {
       credentials: "same-origin",
       headers: {
-        "Content-Type": "application/json"
+        "Content-type": "application/json",
+        Authorization: "Bearer " + this.state.token
       },
       method: "POST",
       body: JSON.stringify(challenge)

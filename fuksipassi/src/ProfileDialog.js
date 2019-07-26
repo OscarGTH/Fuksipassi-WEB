@@ -31,8 +31,9 @@ class ProfileDialog extends React.Component {
   constructor(props) {
     super(props);
     let user = this.props.targetUser;
-    // Set the default value to role radio button.
     this.state = {
+      // The user that is sent back to parent component after editing.
+      user: user,
       // The email that the user chooses
       email: user.email,
       // User given password
@@ -41,12 +42,12 @@ class ProfileDialog extends React.Component {
       role: user.role,
       // Boolean value to check if user is admin or not.
       admin: this.props.currentUser.role,
-      // The user that is sent back to parent component after editing.
-      user: user
+      // The user that is editing
+      editor: this.props.currentUser
     };
   }
   // Calls method from parent component to close the dialog.
-  handleCancel = () => {
+  handleClose = () => {
     this.props.onClose();
   };
 
@@ -117,10 +118,20 @@ class ProfileDialog extends React.Component {
         body: JSON.stringify(user)
       }).then(res => {
         res.json().then(body => {
-          this.props.onEdit(body.user.email);
+          if(res.status == 200){
+            this.props.onEdit(body.user.email);
+          } else{
+            alert(body.message)
+          }
+        
         });
       });
-      this.handleCancel();
+      // If user is changing their own role, then log out after changes.
+      if(this.state.editor.userId == this.state.user.userId && this.state.admin != user.role){
+        this.props.onDelete();
+      }
+      // Close dialog.
+      this.handleClose();
     } else {
       // Alert about the forbidden char's
       alert("Forbidden characters found from input.");
@@ -205,7 +216,7 @@ class ProfileDialog extends React.Component {
             Unregister
           </Button>
           <Button
-            onClick={this.handleCancel}
+            onClick={this.handleClose}
             variant="contained"
             color="primary"
           >

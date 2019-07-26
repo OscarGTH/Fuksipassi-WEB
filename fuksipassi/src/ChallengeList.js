@@ -22,6 +22,8 @@ class ChallengeList extends React.Component {
       barColor: this.props.color,
       // Current user
       user: this.props.user,
+      // Authorization token for API calls
+      token: this.props.token,
       // Contains challenges that haven't been completed
       undoneChall: [],
       // Contains  challenges that have been completed and verified by admin
@@ -66,6 +68,7 @@ class ChallengeList extends React.Component {
       mounted: true
     });
     this.getChallenges();
+    
   }
 
   handleHotkey = e => {
@@ -90,11 +93,14 @@ class ChallengeList extends React.Component {
 
   // Fetches all challenges and sets them into state.
   getChallenges = () => {
+    // Variable to see if the user needs to be logged out (due to server not responding)
+    var loggedOut = false;
     if (this.state.user.role == 0) {
       fetch(this.state.url + "challenge/done/" + this.state.user.userId, {
         method: "GET",
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          Authorization: "Bearer " + this.state.token
         },
         cache: "no-cache"
       }).then(res => {
@@ -118,7 +124,8 @@ class ChallengeList extends React.Component {
       fetch(this.state.url + "challenge/pending/" + this.state.user.userId, {
         method: "GET",
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          Authorization: "Bearer " + this.state.token
         },
         cache: "no-cache"
       }).then(res => {
@@ -142,23 +149,31 @@ class ChallengeList extends React.Component {
       fetch(this.state.url + "challenge/pending", {
         method: "GET",
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          Authorization: "Bearer " + this.state.token
         },
         cache: "no-cache"
       }).then(res => {
         res.json().then(body => {
-          // Check if component is mounted and if body is not undefined
-          if (this.state.mounted && typeof body.data !== "undefined") {
-            var array = new Array();
-            // Move elements from two dimensional array to one dimensional
-            for (var i = 0; i < body.data.length; i++) {
-              array.push(body.data[i][0]);
+          if (res.ok) {
+            // Check if component is mounted and if body is not undefined
+            if (this.state.mounted && typeof body.data !== "undefined") {
+              var array = new Array();
+              // Move elements from two dimensional array to one dimensional
+              for (var i = 0; i < body.data.length; i++) {
+                array.push(body.data[i][0]);
+              }
+              // Sort challenges into the given order
+              var challenges = this.sortByName(this.state.sortingType, array);
+              this.setState({
+                pendingChall: challenges
+              });
             }
-            // Sort challenges into the given order
-            var challenges = this.sortByName(this.state.sortingType, array);
-            this.setState({
-              pendingChall: challenges
-            });
+          } else {
+            if(!loggedOut){
+              this.props.onLogout();
+              loggedOut = true;
+            }
           }
         });
       });
@@ -168,23 +183,31 @@ class ChallengeList extends React.Component {
     fetch(this.state.url + "challenge/undone/" + this.state.user.userId, {
       method: "GET",
       headers: {
-        "Content-type": "application/json"
+        "Content-type": "application/json",
+        Authorization: "Bearer " + this.state.token
       },
       cache: "no-cache"
     }).then(res => {
       res.json().then(body => {
-        // Check if component is mounted and if body is not undefined
-        if (this.state.mounted && typeof body.data !== "undefined") {
-          // Sort challenges into the given order
-          var challenges = this.sortByName(this.state.sortingType, body.data);
-
-          this.setState({
-            undoneChall: challenges
-          });
+        if (res.ok) {
+          // Check if component is mounted and if body is not undefined
+          if (this.state.mounted && typeof body.data !== "undefined") {
+            // Sort challenges into the given order
+            var challenges = this.sortByName(this.state.sortingType, body.data);
+            this.setState({
+              undoneChall: challenges
+            });
+          }
+        } else {
+          if(!loggedOut){
+            this.props.onLogout();
+            loggedOut = true;
+          }
+          
         }
       });
     });
-    return true;
+
   };
   // Handles the clicks of the floating action button. Opens up the dialog.
   handleCreationClick = () => {
@@ -200,6 +223,10 @@ class ChallengeList extends React.Component {
   handleDeletion = challengeId => {
     fetch(this.state.url + "challenge/" + challengeId, {
       method: "DELETE",
+      headers: {
+        "Content-type": "application/json",
+        Authorization: "Bearer " + this.state.token
+      },
       cache: "no-cache"
     }).then(res => {
       if (res.ok) {
@@ -211,6 +238,10 @@ class ChallengeList extends React.Component {
   handleVerification = (userId, challengeId, name) => {
     fetch(this.state.url + "challenge/verify/" + userId + "/" + challengeId, {
       method: "PATCH",
+      headers: {
+        "Content-type": "application/json",
+        Authorization: "Bearer " + this.state.token
+      },
       cache: "no-cache"
     }).then(res => {
       if (res.ok) {
@@ -221,6 +252,10 @@ class ChallengeList extends React.Component {
   handleEntryDeletion = (userId, challengeId) => {
     fetch(this.state.url + "entry/" + userId + "/" + challengeId, {
       method: "DELETE",
+      headers: {
+        "Content-type": "application/json",
+        Authorization: "Bearer " + this.state.token
+      },
       cache: "no-cache"
     }).then(res => {
       if (res.ok) {
@@ -242,6 +277,9 @@ class ChallengeList extends React.Component {
 
     fetch(this.state.url + "entry", {
       method: "POST",
+      headers: {
+        Authorization: "Bearer " + this.state.token
+      },
       cache: "no-cache",
       body: form_data
     }).then(res => {
@@ -295,7 +333,7 @@ class ChallengeList extends React.Component {
         style={{ margin: "30px", listStyleType: "none" }}
       >
         <div style={{ display: " flex", justifyContent: "center" }}>
-          <ExpandableCard challenge={challenge} type="3" />
+          <ExpandableCard challenge={challenge} type="3" color={this.props.cardColor} />
         </div>
       </li>
     ));
@@ -313,6 +351,7 @@ class ChallengeList extends React.Component {
             type="1"
             userId={this.state.user.userId}
             onDelete={this.handleEntryDeletion}
+            color={this.props.cardColor}
           />
         </div>
       </li>
@@ -334,6 +373,7 @@ class ChallengeList extends React.Component {
               challenge={challenge}
               onDelete={this.handleEntryDeletion}
               onVerify={this.handleVerification}
+              color={this.props.cardColor}
               type="2"
             />
           </div>
@@ -355,6 +395,7 @@ class ChallengeList extends React.Component {
               type="0"
               onCompletion={this.handleCompletion}
               onDeletion={this.handleDeletion}
+              color={this.props.cardColor}
               admin={this.state.user.role}
             />
           </div>
@@ -418,7 +459,10 @@ class ChallengeList extends React.Component {
           </Fab>
         ) : null}
         {this.state.showCreatDialog && (
-          <CreationDialog onClose={this.handleCreationClick} />
+          <CreationDialog
+            token={this.state.token}
+            onClose={this.handleCreationClick}
+          />
         )}
       </div>
     );

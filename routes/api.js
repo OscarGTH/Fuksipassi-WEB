@@ -25,28 +25,26 @@ api.post("/admin", controller.addAdmin);
 api.delete("/user/:id", Auth.tokenAuth, Auth.checkLogin, controller.deleteUser);
 // Route for logging in
 api.post("/login", controller.login);
-// Route to get events
-api.get("/events", controller.getEvents);
 // Route to log out.
 api.get("/logout", Auth.tokenAuth, Auth.checkLogin, controller.logout);
 // Route to get incompleted challenges for specific user
-api.get("/challenge/undone/:id",controller.getUndoneChallenges);
+api.get("/challenge/undone/:id",Auth.tokenAuth, Auth.checkLogin,controller.getUndoneChallenges);
 // Route to get unverified challenges for specific user
-api.get("/challenge/pending/:id",controller.getUnverifiedChallenges);
+api.get("/challenge/pending/:id",Auth.tokenAuth, Auth.checkLogin,controller.getUnverifiedChallenges);
 // Route to get completed challenges for specific user
-api.get("/challenge/done/:id",controller.getDoneChallenges);
+api.get("/challenge/done/:id",Auth.tokenAuth, Auth.checkLogin,controller.getDoneChallenges);
 // Route to get  verifiable challenges for admins
-api.get("/challenge/pending",Auth.checkLogin,controller.getPendingChallenges);
+api.get("/challenge/pending",Auth.tokenAuth, Auth.checkLogin,controller.getPendingChallenges);
 // Route to verify a challenge
-api.patch("/challenge/verify/:userId/:challengeId",controller.verifyChallenge)
+api.patch("/challenge/verify/:userId/:challengeId",Auth.tokenAuth, Auth.checkLogin,controller.verifyChallenge)
 // Route to create a challenge
-api.post("/challenge",controller.createChallenge);
+api.post("/challenge",Auth.tokenAuth, Auth.checkLogin,controller.createChallenge);
 // Deletes the selected challenge
-api.delete("/challenge/:id",controller.deleteChallenge);
+api.delete("/challenge/:id",Auth.tokenAuth, Auth.checkLogin,controller.deleteChallenge);
 // Route to complete a challenge
-api.post("/entry",upload.single('file'),controller.completeChallenge);
+api.post("/entry",Auth.tokenAuth, Auth.checkLogin,upload.single('file'),controller.completeChallenge);
 // Route to delete an entry from specific user
-api.delete("/entry/:userId/:challengeId",controller.deleteEntry)
+api.delete("/entry/:userId/:challengeId",Auth.tokenAuth, Auth.checkLogin,controller.deleteEntry)
 // Route to check if area exists and if it is password protected.
 api.get("/area/:area", controller.checkArea);
 

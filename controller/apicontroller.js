@@ -63,6 +63,7 @@ exports.updateUser = [
   check("email").isEmail(),
   check("role").isIn([0, 1]),
   (req, res) => {
+    console.log("updating user")
     // Check for validation errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
@@ -141,6 +142,7 @@ exports.updateUser = [
                 });
               });
           } else {
+            console.log("email in use")
             res.status(400).json({
               user: req.session.user,
               message: "Email already in use"
@@ -148,6 +150,7 @@ exports.updateUser = [
           }
         });
     } else {
+      console.log("format error")
       res
         .status(401)
         .json({ user: req.session.user, message: "Invalid format" });

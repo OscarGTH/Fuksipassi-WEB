@@ -13,7 +13,6 @@ import IconButton from "@material-ui/core/IconButton";
 import Button from "@material-ui/core/Button";
 import CompletionDialog from "./CardCompletionDialog.js";
 import DeletionDialog from "./CardDeletionDialog.js";
-import { CardMedia } from "@material-ui/core";
 const styles = theme => ({
   card: {
     backgroundColor: "#FFFF88",
@@ -63,15 +62,10 @@ class ExpandableCard extends React.Component {
       showCompDialog: false,
       showDelDialog: false,
       admin: this.props.admin,
-      timeout: null
+      cardColor: this.props.color
     };
   }
-  // Stopping the timeout when unmounting.
-  componentWillUnmount() {
-    if (this.state.timeout != null) {
-      clearTimeout(this.state.timeout);
-    }
-  }
+  
   componentDidUpdate(prevProps) {
     // Check if challenge props have been updated.
     if (prevProps.challenge !== this.props.challenge) {
@@ -126,8 +120,9 @@ class ExpandableCard extends React.Component {
   undoneCard = () => {
     const { classes } = this.props;
     return (
-      <Card className={classes.card}>
+      <Card className={classes.card} style={{backgroundColor: this.state.cardColor}}>
         <img
+         alt="Thumbtack"
           className={classes.thumbtack}
           src={process.env.PUBLIC_URL + "/tack.png"}
         />
@@ -176,8 +171,9 @@ class ExpandableCard extends React.Component {
   unverifiedCard = () => {
     const { classes } = this.props;
     return (
-      <Card className={classes.card}>
+      <Card className={classes.card} style={{backgroundColor: this.state.cardColor}}>
         <img
+          alt="Thumbtack"
           className={classes.thumbtack}
           src={process.env.PUBLIC_URL + "/tack.png"}
         />
@@ -229,8 +225,9 @@ class ExpandableCard extends React.Component {
   pendingCard = () => {
     const { classes } = this.props;
     return (
-      <Card className={classes.card}>
+      <Card className={classes.card} style={{backgroundColor: this.state.cardColor}}>
         <img
+         alt="Thumbtack"
           className={classes.thumbtack}
           src={process.env.PUBLIC_URL + "/tack.png"}
         />
@@ -300,8 +297,9 @@ class ExpandableCard extends React.Component {
   doneCard = () => {
     const { classes } = this.props;
     return (
-      <Card className={classes.card}>
+      <Card className={classes.card} style={{backgroundColor: this.state.cardColor}}>
         <img
+         alt="Thumbtack"
           className={classes.thumbtack}
           src={process.env.PUBLIC_URL + "/tack.png"}
         />

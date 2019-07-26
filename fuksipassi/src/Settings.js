@@ -14,8 +14,9 @@ class Settings extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      barColor: this.props.color,
-      sorting: this.props.sorting
+      barColor: this.props.barColor,
+      sorting: this.props.sorting,
+      cardColor: this.props.cardColor
     };
     this.ascended = React.createRef();
     this.descended = React.createRef();
@@ -33,18 +34,23 @@ class Settings extends React.Component {
     // If ESC is pressed, close settings view.
     if (e.keyCode == 27) {
       this.props.onClose();
-    } else if(e.keyCode == 13){
+    } else if (e.keyCode == 13) {
       this.handleSaving();
-    } else if(e.keyCode == 38 || e.keyCode == 40){
-      this.setState({sorting: !this.state.sorting})
+    } else if (e.keyCode == 38 || e.keyCode == 40) {
+      this.setState({ sorting: !this.state.sorting });
     }
   };
-  handleColorChange = color => {
+  handleBarColorChange = color => {
     this.setState({
-      barColor: color.hex,
-      colorEdited: true
+      barColor: color.hex
     });
   };
+  handleCardColorChange = color => {
+    this.setState({
+      cardColor: color.hex
+    });
+  };
+
   handleSortingChange = event => {
     let value = event.target.value;
     // If edited value is sorting radio buttons, determine which value needs to be set.
@@ -55,22 +61,33 @@ class Settings extends React.Component {
   };
 
   handleSaving = () => {
-    this.props.onSave(this.state.sorting,this.state.barColor);
+    this.props.onSave(
+      this.state.sorting,
+      this.state.barColor,
+      this.state.cardColor
+    );
   };
 
   render() {
     return (
-      <Paper style={{ maxWidth: "500px" }}>
-        <div style={{ display: "flex"}}>
-          <div  style={{margin: "20px" }}>
+      <Paper>
+        <div style={{ display: "flex" }}>
+          <div style={{ margin: "20px" }}>
             <Typography>Theme color</Typography>
             <SketchPicker
               color={this.state.barColor}
-              onChangeComplete={this.handleColorChange}
+              onChangeComplete={ this.handleBarColorChange}
+            />
+          </div>
+          <div style={{ margin: "20px" }}>
+            <Typography>Challenge card color</Typography>
+            <SketchPicker
+              color={this.state.cardColor}
+              onChangeComplete={this.handleCardColorChange}
             />
           </div>
 
-          <div style={{margin: "20px" }}>
+          <div style={{ margin: "20px" }}>
             <FormControl>
               <Typography> Sort challenges </Typography>
               <RadioGroup

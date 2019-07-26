@@ -7,7 +7,6 @@ class UserList extends React.Component {
     super(props);
     this.state = {
       users: [],
-      token: this.props.token,
       message: "",
       showEdit: false
     };
@@ -22,7 +21,7 @@ class UserList extends React.Component {
       mode: "cors",
       headers: {
         "Content-type": "application/json",
-        Authorization: "Bearer " + this.state.token
+        Authorization: "Bearer " + this.props.token
       },
       cache: "no-cache"
     }).then(res => {
@@ -54,7 +53,6 @@ class UserList extends React.Component {
   handleHotkey = (e) =>{
     // If ESC is pressed, close the user list.
     if(e.keyCode == 27){
-      console.log("on close called")
       this.props.onClose();
     }
   }
@@ -82,7 +80,7 @@ class UserList extends React.Component {
           <ProfileDialog
             targetUser={this.state.targetUser}
             currentUser={this.props.user}
-            token={this.state.token}
+            token={this.props.token}
             onClose={this.closeEditDialog}
             onDelete={this.handleUserDelete}
             onEdit={this.closeEditDialog}
