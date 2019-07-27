@@ -89,7 +89,7 @@ class LoginForm extends React.Component {
       password: this.state.password
     };
     // Send ajax call to server with username and password.
-    fetch("http://localhost:3000/api/login", {
+    fetch("http://localhost:5000/api/login", {
       credentials: "same-origin",
       headers: {
         "Content-Type": "application/json"

@@ -7,7 +7,6 @@ var ObjectID = require("mongodb").ObjectID;
 const saltRounds = 5;
 var bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
-const events = require("../client/events/events.json");
 const fs = require("fs");
 const { check, validationResult } = require("express-validator/check");
 
@@ -427,11 +426,6 @@ exports.addAdmin = [
   }
 ];
 
-// Return the event list in json format. Fetches the events from events.json file.
-exports.getEvents = function(req, res) {
-  res.status(200);
-  res.json(events);
-};
 
 // Logs out the user. Sets the current session null.
 exports.logout = function(req, res) {
