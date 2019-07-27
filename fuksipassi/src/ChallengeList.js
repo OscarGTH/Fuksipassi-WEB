@@ -69,6 +69,7 @@ class ChallengeList extends React.Component {
     this.setState({
       mounted: true
     });
+
     // Fetch all challenges when mounting is done.
     this.getChallenges();
   }

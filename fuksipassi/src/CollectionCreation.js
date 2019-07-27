@@ -136,6 +136,7 @@ class CollectionForm extends React.Component {
           <div>
             <TextField
               label="Password"
+              type="password"
               onChange={this.handleChange("password")}
             />
           </div>
@@ -163,6 +164,7 @@ class CollectionForm extends React.Component {
             <TextField
               disabled={!this.state.passBool}
               label="Password"
+              type="password"
               onChange={this.handleChange("area_pass")}
             />
           )}

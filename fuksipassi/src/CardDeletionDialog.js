@@ -30,10 +30,10 @@ class DeletionDialog extends React.Component {
    // Handles the key press
    handleHotkey = (e) =>{
     // If ESC is pressed, close the component
-    if(e.KeyCode == 27){
+    if(e.keyCode == 27){
       this.props.onClose();
       // ENTER pressed to delete challenge
-    } else if(e.KeyCode == 13){
+    } else if(e.keyCode == 13){
       this.props.onDeletion();
     }
   }

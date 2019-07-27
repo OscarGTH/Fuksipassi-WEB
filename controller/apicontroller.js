@@ -62,7 +62,7 @@ exports.updateUser = [
   check("email").isEmail(),
   check("role").isIn([0, 1]),
   (req, res) => {
-    console.log("updating user")
+    
     // Check for validation errors.
     const errors = validationResult(req);
     if (errors.isEmpty()) {
@@ -121,7 +121,7 @@ exports.updateUser = [
                     { new: true },
                     function(err, user) {
                       if (err) {
-                        console.log(err);
+                       
                         return res.status(400).json({
                           user: req.session.user,
                           message: "Error when editing user."
@@ -141,7 +141,7 @@ exports.updateUser = [
                 });
               });
           } else {
-            console.log("email in use")
+            
             res.status(400).json({
               user: req.session.user,
               message: "Email already in use"
@@ -149,7 +149,6 @@ exports.updateUser = [
           }
         });
     } else {
-      console.log("format error")
       res
         .status(401)
         .json({ user: req.session.user, message: "Invalid format" });
@@ -301,7 +300,7 @@ exports.addUser = [
                         // Save user into database.
                         user.save(function(err) {
                           if (err) {
-                            console.log("error when saving!");
+                           
                             res
                               .status(401)
                               .json({ message: "Authorization failed" });
@@ -435,7 +434,7 @@ exports.logout = function(req, res) {
 
 // Deletes the selected user.
 exports.deleteUser = function(req, res) {
-  console.log(req.params.id);
+ 
   // Checks that the user is either admin or basic user who is deleting themselves.
   if (req.session.user.role == 1 || req.session.user.userId == req.params.id) {
     User.deleteOne({ userId: req.params.id })
@@ -460,7 +459,6 @@ exports.createChallenge = [
   check("title").isString(),
   check("description").isString(),
   (req, res) => {
-    console.log("hey")
     //Check that the user is admin. ENABLE ME WHEN FINISHED!!!!
     if (req.session.user.role == 1) {
       var challenge = new Challenge();

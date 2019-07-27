@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node app.js",
     "backend": "nodemon app.js",
-    "frontend": "cd fuksipassi && serve -s build -l 3000",
+    "frontend": "npm start --prefix fuksipassi",
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "node-env-run server --exec nodemon"

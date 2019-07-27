@@ -109,12 +109,14 @@ class RegisterForm extends React.Component {
             <div>
               <TextField
                 label="Email"
+                type="email"
                 onChange={this.handleChange("email")}
               />
             </div>
             <div>
               <TextField
                 label="Password"
+                type="password"
                 onChange={this.handleChange("password")}
               />
             </div>
@@ -123,12 +125,12 @@ class RegisterForm extends React.Component {
                 label="Area name"
                 onChange={this.handleChange("area")}
               />
-              <Button onClick={this.checkArea}>Check</Button>
+              <Button onClick={this.checkArea} variant="contained">Check</Button>
               {!this.state.areaFound && this.state.checked && <DownIcon color="error"></DownIcon>}
               {this.state.areaFound && <UpIcon color="primary"></UpIcon>}</div>
               
            
-            {this.state.areaPassNeeded && <TextField value={this.state.areaPass} onChange={this.handleChange("areaPass")} label="Area password"/>}
+            {this.state.areaPassNeeded && <TextField value={this.state.areaPass} type="password" onChange={this.handleChange("areaPass")} label="Area password"/>}
           </DialogContent>
 
           <DialogActions>
