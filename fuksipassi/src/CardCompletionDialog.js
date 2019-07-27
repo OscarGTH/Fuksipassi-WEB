@@ -13,19 +13,25 @@ class CompletionDialog extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      // Challenge title
       title: this.props.title,
+      // Image file that was uploaded
       file: "",
+      // Message which informs the user about errors etc.
       message: "",
+      // Toggle to disable complete-button. Used if file is too large or if there is no file.
       disableComplete: true
     };
   }
 
   // Handle image upload changes
   handleUpload = event => {
+    // If file is not present, set message to empty.
     if (typeof event.target.files[0] === "undefined") {
       this.setState({
         message: ""
       });
+      // If file is small enough (under 2MB)
     } else if (event.target.files[0].size / 1024 / 1024 < 2) {
         this.setState({
           disableComplete: false,
@@ -33,14 +39,15 @@ class CompletionDialog extends React.Component {
           message: ""
         });
       } else {
+        // If file is too big, set message.
         this.setState({
           message: "File size exceeds limits."
         });
       }
     
   };
-
-  handleComplete = file => {
+  // Completes the challenge and send the file to parent component.
+  handleComplete = () => {
     this.props.onComplete(this.state.file);
   };
 
@@ -74,7 +81,6 @@ class CompletionDialog extends React.Component {
               style={{ borderStyle: "dashed", width: 400, height: 50 }}
             />
             <div>
-              {" "}
               Drag image here or browse from folders (size limit is 2 MB)
             </div>
           </div>

@@ -13,6 +13,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Button from "@material-ui/core/Button";
 import CompletionDialog from "./CardCompletionDialog.js";
 import DeletionDialog from "./CardDeletionDialog.js";
+// Styles applied to elements
 const styles = theme => ({
   card: {
     backgroundColor: "#FFFF88",
@@ -56,35 +57,47 @@ class ExpandableCard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      // Type of card (undone, done, unverified, pending)
       type: this.props.type,
+      // Challenge that is displayed in the card
       challenge: this.props.challenge,
+      // Toggle to indicate if card is expanded
       expanded: false,
+      // Toggle to show card completion dialog
       showCompDialog: false,
+      // Toggle to show card deletion dialog
       showDelDialog: false,
+      // Indicates if user is admin
       admin: this.props.admin,
+      // Card color
       cardColor: this.props.color
     };
   }
-  
+  // When props are updated, compare them to previous and update state if needed.
   componentDidUpdate(prevProps) {
     // Check if challenge props have been updated.
     if (prevProps.challenge !== this.props.challenge) {
       this.setState({ challenge: this.props.challenge });
+    }
+    if(prevProps.color !== this.props.color){
+      this.setState({cardColor: this.props.color})
     } 
   }
+  // Called when card is completed. Gets image file as a parameter
   handleCompletion = file => {
     this.handleDialog();
     this.props.onCompletion(this.state.challenge.challengeId, file);
   };
-
+  // Handles the deletion dialog opening and closing.
   handleDeletionDialog = () => {
     this.setState({
       showDelDialog: !this.state.showDelDialog
     });
   };
-
+  // Handles the card deletion.
   handleDeletion = () => {
     this.props.onDeletion(this.state.challenge.challengeId);
+    // Close the deletion dialog.
     this.handleDeletionDialog();
   };
   // Handles the expansion of the card
@@ -94,7 +107,7 @@ class ExpandableCard extends React.Component {
       showDialog: false
     });
   };
-
+  // Handles the card completion dialog opening and closing.
   handleDialog = () => {
     this.setState({
       showCompDialog: !this.state.showCompDialog
@@ -116,8 +129,9 @@ class ExpandableCard extends React.Component {
     // Force a click on the link to download the image.
     link.click();
   };
-
+  // Function to render an undone card.
   undoneCard = () => {
+    // Get classes as a constant
     const { classes } = this.props;
     return (
       <Card className={classes.card} style={{backgroundColor: this.state.cardColor}}>
@@ -167,7 +181,7 @@ class ExpandableCard extends React.Component {
       </Card>
     );
   };
-
+  // Function which returns an unverified card.
   unverifiedCard = () => {
     const { classes } = this.props;
     return (
@@ -222,6 +236,7 @@ class ExpandableCard extends React.Component {
       </Card>
     );
   };
+  // Function which returns a pending card.
   pendingCard = () => {
     const { classes } = this.props;
     return (
@@ -270,8 +285,7 @@ class ExpandableCard extends React.Component {
             onClick={() =>
               this.props.onVerify(
                 this.state.challenge.userId,
-                this.state.challenge.challengeId,
-                this.state.challenge.info.title
+                this.state.challenge.challengeId
               )
             }
           >
@@ -293,7 +307,7 @@ class ExpandableCard extends React.Component {
       </Card>
     );
   };
-
+  // Function which returns a done card.
   doneCard = () => {
     const { classes } = this.props;
     return (

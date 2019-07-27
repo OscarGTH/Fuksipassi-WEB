@@ -34,7 +34,9 @@ class App extends React.Component {
       // Color of the challenge card
       cardColor: "#FFFF88",
       // Previous color theme
-      previousColor: "",
+      previousBarColor: "",
+      // Previous color of cards
+      previousCardColor: "",
       //Boolean to toggle redo button
       redo: false,
       //Boolean to toggle undo button
@@ -54,15 +56,17 @@ class App extends React.Component {
     };
    
   }
+  // Function that runs when component is mounted
   componentDidMount() {
     // Add a key listener
     window.addEventListener("keydown", this.handleHotkey);
-    // Check local storage for saved color
+    // Check local storage for saved color for app bar
     if (localStorage.getItem("color") !== null) {
       this.setState({
         barColor: localStorage.getItem("color")
       });
     }
+    // Check local storage for card color
     if (localStorage.getItem("cardColor") !== null) {
       this.setState({
         cardColor: localStorage.getItem("cardColor")
@@ -78,10 +82,12 @@ class App extends React.Component {
     if (localStorage.getItem("session") !== null) {
       var session_obj = JSON.parse(localStorage.getItem("session"));
       var login_time = new Date(session_obj.timestamp);
+      // Get time when the user logged in for the first time during the session.
       var then = new Date(login_time.setMinutes(login_time.getMinutes() + 15));
       var now = new Date();
-
+      // Check if the user has been logged in under 15 minutes
       if (now.getTime() < then.getTime()) {
+        // Set token and user into state
         this.setState({
           auth: true,
           token: localStorage.getItem("token"),
@@ -90,7 +96,9 @@ class App extends React.Component {
       }
     }
   }
+  // Runs when component is unmounting
   componentWillUnmount() {
+    // Remove key listener
     window.removeEventListener("keydown", this.handleHotkey);
   }
 
@@ -145,7 +153,7 @@ class App extends React.Component {
         editProfile: false
       })
     );
-
+    // Clear local storage when logging out.
     localStorage.clear();
   };
   // Toggles the profile editing dialog.
@@ -162,6 +170,7 @@ class App extends React.Component {
       user: updatedUser
     });
   };
+  // Toggles the tutorial view.
   handleHelp = () => {
     this.setState({
       showHelp: !this.state.showHelp
@@ -188,8 +197,10 @@ class App extends React.Component {
   // Handles the undo button press
   handleUndo = () => {
     this.setState({
-      previousColor: this.state.barColor,
-      barColor: this.state.previousColor,
+      previousCardColor: this.state.cardColor,
+      previousBarColor: this.state.barColor,
+      barColor: this.state.previousBarColor,
+      cardColor: this.state.previousCardColor,
       undo: false,
       redo: true
     });
@@ -197,8 +208,10 @@ class App extends React.Component {
   // Handles the redo button press
   handleRedo = () => {
     this.setState({
-      previousColor: this.state.barColor,
-      barColor: this.state.previousColor,
+      previousCardColor: this.state.cardColor,
+      previousBarColor: this.state.barColor,
+      barColor: this.state.previousBarColor,
+      cardColor: this.state.previousCardColor,
       redo: false,
       undo: true
     });
@@ -213,18 +226,20 @@ class App extends React.Component {
     if (localStorage.getItem("cardColor") != cardColor && cardColor != this.state.cardColor) {
       setUndo = true;
     }
-    // Save color into local storage, so it doesn't get lost when refreshing page.
+    // Save colors and sorting method into local storage, so they don't get lost when refreshing page.
     localStorage.setItem("color", barColor);
     localStorage.setItem("cardColor", cardColor);
     localStorage.setItem("sortingType", sorting);
     this.setState({
       redo: false,
       undo: setUndo,
-      previousColor: this.state.barColor,
+      previousCardColor: this.state.cardColor,
+      previousBarColor: this.state.barColor,
       barColor: barColor,
       cardColor: cardColor,
       sortingType: sorting
     });
+    // Close settings view
     this.handleSettings();
   };
 

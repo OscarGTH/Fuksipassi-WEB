@@ -24,6 +24,30 @@ class Tutorial extends React.Component {
             other area.
           </p>
           <Typography align="center" gutterBottom variant="h6">
+            Challenges
+          </Typography>
+          <p>
+            Incompleted challenges are found from the tab "Incompleted". You can
+            complete these challenges by pressing the button "Complete". Drag
+            and drop an image or choose from your folders to activate the
+            completion button. File size limit is 2 MB.
+          </p>
+          <p>
+            Pending tab shows challenges that have been completed, but which
+            haven't been verified by admins of the area. Admins can delete or
+            verify the challenge depending on how they decide.
+          </p>
+          <p>
+            For admins, pending tab shows all the completed, but not yet
+            verified challenges in their area. Email of the user is being shown
+            along with the image of the challenge.
+          </p>
+          <p>
+            Completed tab shows the challenges which have been verified and
+            accepted by admins. Images can be downloaded by expanding the card
+            and clicking the button "Download image".
+          </p>
+          <Typography align="center" gutterBottom variant="h6">
             Hotkeys
           </Typography>
           <p>

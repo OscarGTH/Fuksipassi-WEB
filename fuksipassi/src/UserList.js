@@ -6,14 +6,19 @@ class UserList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      // Array of users in the area.
       users: [],
+      // Message to display to page user in case there is a problem etc.
       message: "",
+      // Toggle to show editing dialog.
       showEdit: false
     };
   }
+  // Removing event listener when unmounting.
   componentWillUnmount() {
     window.removeEventListener("keydown", this.handleHotkey);
   }
+  // When component mounts, fetch users of the area.
   componentDidMount() {
     window.addEventListener("keydown", this.handleHotkey);
     fetch("http://localhost:3000/api/user", {
@@ -37,13 +42,14 @@ class UserList extends React.Component {
       }
     });
   }
+  // Handles the opening of edit dialog. Gets user as a parameter.
   openEditDialog = user => {
     this.setState({
       targetUser: user,
       showEdit: true
     });
   };
-
+  // Closes edit dialog
   closeEditDialog = () => {
     this.setState({
       showEdit: false

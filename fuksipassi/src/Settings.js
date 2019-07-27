@@ -21,10 +21,11 @@ class Settings extends React.Component {
     this.ascended = React.createRef();
     this.descended = React.createRef();
   }
-
+  // Removing key listener when unmounting.
   componentWillUnmount() {
     window.removeEventListener("keydown", this.handleHotkey);
   }
+  // Adding key listener when mounting.
   componentDidMount() {
     window.addEventListener("keydown", this.handleHotkey);
   }
@@ -40,17 +41,19 @@ class Settings extends React.Component {
       this.setState({ sorting: !this.state.sorting });
     }
   };
+  // Handles the color change of app bar
   handleBarColorChange = color => {
     this.setState({
       barColor: color.hex
     });
   };
+  // Handles the card color change
   handleCardColorChange = color => {
     this.setState({
       cardColor: color.hex
     });
   };
-
+  // Handles the radio button change of sorting types.
   handleSortingChange = event => {
     let value = event.target.value;
     // If edited value is sorting radio buttons, determine which value needs to be set.
@@ -59,7 +62,7 @@ class Settings extends React.Component {
       sorting: value
     });
   };
-
+  // Handles the parent function calling with appropriate parameters.
   handleSaving = () => {
     this.props.onSave(
       this.state.sorting,

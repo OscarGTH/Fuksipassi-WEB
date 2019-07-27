@@ -13,13 +13,16 @@ class DeletionDialog extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      // Challenge title
       title: this.props.title
     };
   }
-
+  // Called when component is unmounting.
   componentWillUnmount() {
+    // Removing key press listener
     window.removeEventListener("keydown", this.handleHotkey);
   }
+  // Add key listener when mounting
   componentDidMount() {
     window.addEventListener("keydown", this.handleHotkey);
   }

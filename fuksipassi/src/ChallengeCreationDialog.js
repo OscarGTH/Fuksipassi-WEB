@@ -27,15 +27,19 @@ class CreationDialog extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      // Title for a challenge
       title: "",
+      // Description for the challenge
       description: "",
+      // Message to inform user if creation failed.
       message: ""
     };
   }
-
+  // Remove key listener when unmounting.
   componentWillUnmount() {
     window.removeEventListener("keydown", this.handleHotkey);
   }
+  // Add event listener when mounting
   componentDidMount() {
     window.addEventListener("keydown", this.handleHotkey);
   }
@@ -67,22 +71,26 @@ class CreationDialog extends React.Component {
 
   // Called when challenge information has been given by the user and the challenge needs to be saved into database.
   handleCreation = () => {
+    // Make a JSON object out of title and description
     var challenge = {
       title: this.state.title,
       description: this.state.description
     };
+    // Use fetch to POST an api request with challenge data.
     fetch("http://localhost:3000/api/challenge", {
       credentials: "same-origin",
       headers: {
         "Content-type": "application/json",
-        Authorization: "Bearer " + this.state.token
+        Authorization: "Bearer " + this.props.token
       },
       method: "POST",
       body: JSON.stringify(challenge)
     }).then(res => {
+      // If api response is ok, close dialog.
       if (res.ok) {
         this.props.onClose();
       } else {
+        // If response was not ok, set error message to state.
         res.json(body => {
           this.setState({
             message: body.message

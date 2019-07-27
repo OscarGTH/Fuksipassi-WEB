@@ -466,6 +466,7 @@ exports.createChallenge = [
   check("title").isString(),
   check("description").isString(),
   (req, res) => {
+    console.log("hey")
     //Check that the user is admin. ENABLE ME WHEN FINISHED!!!!
     if (req.session.user.role == 1) {
       var challenge = new Challenge();

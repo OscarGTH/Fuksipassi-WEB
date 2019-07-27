@@ -30,17 +30,23 @@ class CollectionForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      // User given email
       email: "",
+      // User given password
       password: "",
+      // User given area name
       area: "",
+      // User given area password
       area_pass: "",
+      // Toggles the password text field
       passBool: false
     };
   }
-
+  // Remove event listener when unmounting.
   componentWillUnmount() {
     window.removeEventListener("keydown", this.handleHotkey);
   }
+  // Add key listener when mounting.
   componentDidMount() {
     window.addEventListener("keydown", this.handleHotkey);
   }
@@ -65,7 +71,7 @@ class CollectionForm extends React.Component {
     });
   };
 
-  // Handles checkbox
+  // Handles checkbox to toggle password text field
   handleCheckBox = () => {
     this.setState({
       passBool: !this.state.passBool

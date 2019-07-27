@@ -46,6 +46,7 @@ class ChallengeList extends React.Component {
       sortingType: this.props.sortingType
     };
   }
+  // Check if props have updated and update if needed.
   componentDidUpdate(prevProps) {
     // Check if color has been updated in props
     if (prevProps.color !== this.props.color) {
@@ -55,22 +56,23 @@ class ChallengeList extends React.Component {
       this.setState({ sortingType: this.props.sortingType });
     }
   }
+  // Remove event listener when unmounting and set state accordingly to prevent state mutation.
   componentWillUnmount() {
     window.removeEventListener("keydown", this.handleHotkey);
     this.setState({
       mounted: false
     });
   }
-
+  // Add key listener when mounting component
   componentDidMount() {
     window.addEventListener("keydown", this.handleHotkey);
     this.setState({
       mounted: true
     });
+    // Fetch all challenges when mounting is done.
     this.getChallenges();
-    
   }
-
+  // Gets the pressed key and checks the keycode of it.
   handleHotkey = e => {
     // If left arrow key is pressed, decrease tab value by one.
     var tabVal = this.state.tabValue;
@@ -95,6 +97,7 @@ class ChallengeList extends React.Component {
   getChallenges = () => {
     // Variable to see if the user needs to be logged out (due to server not responding)
     var loggedOut = false;
+    // If the user's role is basic, then fetch incompleted, pending and done challenges.
     if (this.state.user.role == 0) {
       fetch(this.state.url + "challenge/done/" + this.state.user.userId, {
         method: "GET",
@@ -130,14 +133,16 @@ class ChallengeList extends React.Component {
         cache: "no-cache"
       }).then(res => {
         res.json().then(body => {
+          // If challenge list is mounted and returned data is not undefined, continue.
           if (this.state.mounted && typeof body.data !== "undefined") {
             var array = new Array();
-            // Move elements from two dimensional array to one dimensional
+            // Move elements from two dimensional array to one dimensional array
             for (var i = 0; i < body.data.length; i++) {
               array.push(body.data[i][0]);
             }
             // Sort challenges into the given order
             var challenges = this.sortByName(this.state.sortingType, array);
+            // Set challenges to state.
             this.setState({
               unverifiedChall: challenges
             });
@@ -170,7 +175,7 @@ class ChallengeList extends React.Component {
               });
             }
           } else {
-            if(!loggedOut){
+            if (!loggedOut) {
               this.props.onLogout();
               loggedOut = true;
             }
@@ -179,7 +184,7 @@ class ChallengeList extends React.Component {
       });
     }
 
-    // Fetch challenges that haven't been completed.
+    // Fetch all challenges.
     fetch(this.state.url + "challenge/undone/" + this.state.user.userId, {
       method: "GET",
       headers: {
@@ -199,19 +204,20 @@ class ChallengeList extends React.Component {
             });
           }
         } else {
-          if(!loggedOut){
+          // If user has not been logged out before, do it now.
+          if (!loggedOut) {
             this.props.onLogout();
+            // Set loggedOut as true.
             loggedOut = true;
           }
-          
         }
       });
     });
-
   };
   // Handles the clicks of the floating action button. Opens up the dialog.
   handleCreationClick = () => {
-    if (this.state.showCreatDialog != false) {
+    // If creation dialog was open and this function was called again, get all challenges again.
+    if (this.state.showCreatDialog) {
       this.getChallenges();
     }
     this.setState({
@@ -229,13 +235,15 @@ class ChallengeList extends React.Component {
       },
       cache: "no-cache"
     }).then(res => {
+      // If response is okay, get challenges.
       if (res.ok) {
         this.getChallenges();
       }
     });
   };
-
-  handleVerification = (userId, challengeId, name) => {
+  // Handles the verification of challenge. Only used by admins.
+  handleVerification = (userId, challengeId) => {
+    // Send API call with user id and challenge id.
     fetch(this.state.url + "challenge/verify/" + userId + "/" + challengeId, {
       method: "PATCH",
       headers: {
@@ -244,11 +252,13 @@ class ChallengeList extends React.Component {
       },
       cache: "no-cache"
     }).then(res => {
+      // Update challenges if response is ok.
       if (res.ok) {
         this.getChallenges();
       }
     });
   };
+  // Handles the deletion of pending challenge.
   handleEntryDeletion = (userId, challengeId) => {
     fetch(this.state.url + "entry/" + userId + "/" + challengeId, {
       method: "DELETE",
@@ -263,18 +273,21 @@ class ChallengeList extends React.Component {
       }
     });
   };
-
+  // Handles the completion of challenge. Gets image and challenge id as parameters.
   handleCompletion = (challengeId, image) => {
+    // Creating a json object with needed data.
     var entry_object = {
       userId: this.state.user.userId,
       challengeId: challengeId,
       file: image[0]
     };
+    // Creating form data object.
     var form_data = new FormData();
+    // Appending data from entry_object into the form data object.
     for (var name in entry_object) {
       form_data.append(name, entry_object[name]);
     }
-
+    // Sending API call with the form data object as the body.
     fetch(this.state.url + "entry", {
       method: "POST",
       headers: {
@@ -333,7 +346,11 @@ class ChallengeList extends React.Component {
         style={{ margin: "30px", listStyleType: "none" }}
       >
         <div style={{ display: " flex", justifyContent: "center" }}>
-          <ExpandableCard challenge={challenge} type="3" color={this.props.cardColor} />
+          <ExpandableCard
+            challenge={challenge}
+            type="3"
+            color={this.props.cardColor}
+          />
         </div>
       </li>
     ));
