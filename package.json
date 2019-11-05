@@ -24,7 +24,7 @@
     "fs": "0.0.1-security",
     "helmet": "^3.16.0",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.4.11",
+    "mongoose": "^5.7.5",
     "multer": "^1.4.1",
     "node-env-run": "^3.0.2",
     "nodemon": "^1.18.11",
